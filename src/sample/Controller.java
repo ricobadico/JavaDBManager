@@ -27,6 +27,7 @@ public class Controller {
     // Member variables tracking state of current connection/ database manager instance, as well as current table
     String currentTable = null;
     DbManager connection = null;
+    boolean hasClassFile; // tracks whether a class file exists or defaults are used
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -95,6 +96,27 @@ public class Controller {
         // Get currently selected table name
         String chosenTable = cbxTableList.getSelectionModel().getSelectedItem();
         currentTable = chosenTable; // set member-level variable to track state of this
+
+        // Check to see if a class exists with the selected item.
+        //  If so, we want to use it instead of the default-choosing code
+        try {
+            Class test = Class.forName("db." + currentTable,    // Checks for the classfile in the database package
+                    false, this.getClass().getClassLoader()); // Extra params to make it work
+
+            System.out.println("Predefined class found: " + test.getName());
+
+            // Based on whether a class was found, we set a boolean that will determine how subsequent operations will run
+            if (test != null)
+                hasClassFile = true;
+
+        // Class.forName calls an exception if the class doesn't exist.
+        } catch (ClassNotFoundException e) {
+            hasClassFile = false; // keeps track of fact that we don't have a predefined class to pull from
+            System.out.println("Using programmatic defaults");
+        }
+
+        System.out.println("hasClassFile: " + hasClassFile);
+
 
         // Get record names for combo box
         connection = new db.DbManager(); // create manager class (establishes connection)
