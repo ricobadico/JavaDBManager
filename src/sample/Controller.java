@@ -110,8 +110,8 @@ public class Controller {
 
         // Get record names for combo box
         connection = new db.DbManager(); // create manager class (establishes connection)
-        ArrayList<String> agentNames = connection.getRecordNames(chosenTable); // call method to get descriptive names for each record
-        ObservableList cbxContents = FXCollections.observableList(agentNames); // convert to observable list
+        ArrayList<String> recordNames = connection.getRecordNames(chosenTable); // call method to get descriptive names for each record
+        ObservableList cbxContents = FXCollections.observableList(recordNames); // convert to observable list
         cbxRecordList.setItems(cbxContents); // add list to combo box
 
         // Remove existing text fields and labels to make room for the ones this table calls for
@@ -172,7 +172,7 @@ public class Controller {
      */
     private void populateRecordSelection() {
 
-        // Get currently selected agent in combo box
+        // Get currently selected record in combo box
         String chosenItem = cbxRecordList.getSelectionModel().getSelectedItem();
 
         // When switching from one table to another, this event fires with the selection being null.
@@ -300,7 +300,7 @@ public class Controller {
 
         }
         // In the event the SQL fails, pop up an alert
-        catch (SQLDataException e) {
+        catch (SQLException e) {
             Alert a = new Alert(Alert.AlertType.WARNING);
             a.setTitle("Bad Update");
             a.setHeaderText("Something went wrong! (Better validation to come)");
