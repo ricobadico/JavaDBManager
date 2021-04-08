@@ -4,14 +4,15 @@
 
 package sample;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.sql.ResultSet;
 import java.sql.SQLDataException;
 import java.sql.SQLException;
 import java.util.*;
 
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
+import db.ITableEntity;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -20,14 +21,13 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import db.DbManager;
-import javafx.scene.text.Text;
 
 public class Controller {
 
-    // Member variables tracking state of current connection/ database manager instance, as well as current table
-    String currentTable = null;
-    DbManager connection = null;
-    boolean hasClassFile; // tracks whether a class file exists or defaults are used
+    // Member variables
+    DbManager connection = null; // current connection
+    String currentTable = null; // selected table
+    Class<ITableEntity> predefinedClassFile = null; // predefined table class (if one exists)
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -100,23 +100,12 @@ public class Controller {
         // Check to see if a class exists with the selected item.
         //  If so, we want to use it instead of the default-choosing code
         try {
-            Class test = Class.forName("db." + currentTable,    // Checks for the classfile in the database package
+            predefinedClassFile = (Class<ITableEntity>) Class.forName("db." + currentTable,    // Checks for the classfile in the database package
                     false, this.getClass().getClassLoader()); // Extra params to make it work
-
-            System.out.println("Predefined class found: " + test.getName());
-
-            // Based on whether a class was found, we set a boolean that will determine how subsequent operations will run
-            if (test != null)
-                hasClassFile = true;
-
         // Class.forName calls an exception if the class doesn't exist.
         } catch (ClassNotFoundException e) {
-            hasClassFile = false; // keeps track of fact that we don't have a predefined class to pull from
             System.out.println("Using programmatic defaults");
         }
-
-        System.out.println("hasClassFile: " + hasClassFile);
-
 
         // Get record names for combo box
         connection = new db.DbManager(); // create manager class (establishes connection)
@@ -131,9 +120,31 @@ public class Controller {
         // Create labels and textboxes for each column
         ArrayList<String> columnNames = connection.getColumnNames(chosenTable); // get col names
 
+        // If we have a class with column labels, we can grab them now
+        HashMap<String, String> formattedColumnLabels = null;
+        if(predefinedClassFile != null) {
+            try {
+                // These lines just run the GetColumnLabels method from the current classfile.
+                // Since that method is required by the interface, we know it should work
+                Method getColumnLabels = predefinedClassFile.getMethod("GetColumnLabels");
+                formattedColumnLabels = (HashMap<String, String>) getColumnLabels.invoke(predefinedClassFile, null);
+            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Create the columns needed for this table's data
         for (String col: columnNames) { // for each column:
 
             Label columnLabel = new Label(col); // create a new label with that name
+
+            // Update to use the column's display label (if defined in the class)
+            if(formattedColumnLabels != null) {
+                // Find the formatted label associated with the actual db column name (in col variable)
+                columnLabel.setText(formattedColumnLabels.get(col));
+            }
+
+            // Set up other formatting
             columnLabel.setStyle("-fx-font: 16 System"); // update size
             columnLabel.setPadding(new Insets(0,0,5,0)); // add a little padding
             vboxLabels.getChildren().add(columnLabel); // attach it to the vbox
