@@ -12,6 +12,7 @@ import java.sql.SQLDataException;
 import java.sql.SQLException;
 import java.util.*;
 
+import db.Agents;
 import db.ITableEntity;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
