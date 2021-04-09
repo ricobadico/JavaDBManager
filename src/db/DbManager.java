@@ -263,11 +263,7 @@ public class DbManager {
                 switch (datatype){
                     case "int":
 
-                        // Get value
                         int value = parseInt(inputValue);
-
-
-
                         statement.setInt(i, value);
                         break;
 
@@ -316,7 +312,7 @@ public class DbManager {
      * @return String in the form of datatype(maxlength)
      * @throws SQLException
      */
-    private String getColumnDataType(String tableName, String columnName) throws SQLException {
+    public String getColumnDataType(String tableName, String columnName) throws SQLException {
         // Create query to grab column metadate for the chosen column
         String query = "SHOW COLUMNS FROM " +  tableName + " WHERE Field = '" + columnName + "';";
 
