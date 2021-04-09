@@ -1,13 +1,23 @@
 package sample;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 
 import java.text.DecimalFormat;
 import java.text.ParsePosition;
 
-public class FormatHelpers {
+public class FormatHelper {
 
+    public static void  formatCurrency (TextField colInput, DecimalFormat myFormat) {
+
+        // Remove extra characters from formatted input string to get at the actual value (if any exist)
+        String cleanInput = colInput.getText().replaceAll(",", "").replaceAll("$", "");
+        // Re-format the value and set the input text to it
+        colInput.setText(myFormat.format(Double.valueOf(cleanInput)));
+
+        }
 
 
     // Thanks to https://www.programcreek.com/java-api-examples/?api=javafx.scene.control.TextFormatter

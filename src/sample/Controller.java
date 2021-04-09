@@ -8,16 +8,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.sql.ResultSet;
-import java.sql.SQLDataException;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
-import java.text.ParsePosition;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import db.Agents;
 import db.ITableEntity;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -27,8 +23,6 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import db.DbManager;
-import javafx.util.converter.DateTimeStringConverter;
-import org.w3c.dom.Text;
 
 public class Controller {
 
@@ -142,33 +136,80 @@ public class Controller {
         }
 
         // Create the columns needed for this table's data
-        for (String col: columnNames) { // for each column:
+        for (String colName: columnNames) { // for each column:
 
-            Label columnLabel = new Label(col); // create a new label with that name
+            Label columnLabel = new Label(colName); // create a new label with that name
 
             // Update to use the column's display label (if defined in the class)
             if(formattedColumnLabels != null) {
-                // Find the formatted label associated with the actual db column name (in col variable)
-                columnLabel.setText(formattedColumnLabels.get(col));
+                // Find the formatted label associated with the actual db column name (in colName variable)
+                columnLabel.setText(formattedColumnLabels.get(colName));
             }
 
-            // Set up other formatting
+            // Set up other label formatting
             columnLabel.setStyle("-fx-font: 16 System"); // update size
             columnLabel.setPadding(new Insets(0,0,5,0)); // add a little padding
             vboxLabels.getChildren().add(columnLabel); // attach it to the vbox
 
-            // Add an input based on the column's datatype
+            // Add an input and listeners based on the column's datatype
             Control colInput;
-            if(findDataType(col).equals("datetime")){ // checks current col's datatype for datetime
+
+            // Datetime data: create datepicker
+            if(findDataType(colName).equals("datetime")) {
                 colInput = new DatePicker();
+
+            }
+
+            // Decimal data: create textbox with decimal formatting and validation
+            else if (findDataType(colName).equals("decimal")) {
+                colInput = new TextField(); // add a text field
+
+                // Add an on-blur listener that will format the input to a nice currency display
+                DecimalFormat myFormat = new DecimalFormat("$###,##0.00");
+                colInput.focusedProperty().addListener((observableValue, aBoolean, t1) -> {
+                    if (observableValue.getValue() == false)
+                        FormatHelper.formatCurrency((TextField) colInput, myFormat);
+                });
+
+            // Int data: create textbox and add int validation
+            } else if (findDataType(colName).equals("int")) {
+                colInput = new TextField(); // add a text field
+
+                // Add validation on leaving textfield
+                colInput.focusedProperty().addListener((observableValue, aBoolean, t1) -> {
+                    if (observableValue.getValue() == false) {
+
+                        // Run int validation
+                        Validator.isPositiveInt(colName, (TextField) colInput);
+
+                    }
+                });
+
+            // Varchar/ misc data
+            // TODO: add varchar length validation here instead of elsewhere
+            // TODO: Figure out if there are other data types this should be checking for
             } else {
                 colInput = new TextField(); // add a text field
             }
-            colInput.setId("txt" + col); // give it an id
+            colInput.setId("input" + colName); // give it an id
                 vboxInputs.getChildren().add(colInput); // add it to other vbox
 
             // Set input to read-only (default until edit mode is entered)
             colInput.setDisable(true);
+
+            // TODO: add custom validation, if any, in a Table class
+
+            // Check for table class
+            if(predefinedClassFile != null){
+
+                // TODO - search class for fields with custom validation.
+                //  Possibly this requires the class having a map of column names as keys as validation calls as values.
+                //  We can check the current column name with the colName variable
+                //  This is needed for, for instance, ensuring start date is before end date in packages
+
+
+            }
+
         }
 
         // Enable second combobox
@@ -177,6 +218,7 @@ public class Controller {
         // Disable edit button (until new record is selected)
         btnEdit.setDisable(true);
     }
+
 
 
 
@@ -216,11 +258,14 @@ public class Controller {
                     }
 
                     // Set input based on column data type. We can find this out by looking at the control's ID, which was generated with it
-                    String colName = input.getId().replace("txt", "");
+                    String colName = input.getId().replace("input", "");
                     // Else if decimal
                     if(findDataType(colName).equals("decimal")) {
-                        //TODO: format as currency
-                        ((TextField) input).setText(data);
+                        DecimalFormat myFormat = new DecimalFormat("$###,##0.00");
+                        //Format as currency
+                        double dataAsDecimal = Double.valueOf((data.replaceAll(",","").replaceAll("\\$","")));
+                        System.out.println("Decimal: " + dataAsDecimal);
+                        ((TextField) input).setText(myFormat.format(dataAsDecimal));
                     }
                     // Else if date
                     else if(findDataType(colName).equals("datetime")){
@@ -256,7 +301,7 @@ public class Controller {
         try {
             // Figure out which column is PK
             String pkCol = connection.getPKColumnForTable(currentTable);
-            String IDForPKTextBox = "txt" + pkCol; // the id of the pk textbox takes this form
+            String IDForPKTextBox = "input" + pkCol; // the id of the pk textbox takes this form
             System.out.println(pkCol);
 
             // Enable all text fields (except PK)
@@ -301,11 +346,26 @@ public class Controller {
 
             String input;
 
+            // We need to process the data a bit based on the data type in the db
+            // Datetime: pulled from DatePicker
             if(findDataType(columnName).equals("datetime")){
                 LocalDate dateInput = ((DatePicker)vboxInputs.getChildren().get(i)).getValue();
-
                 input = dateInput.toString();
 
+            // Decimal: Pulled from textfield, needs to be stripped of currency characters if not null
+            } else if(findDataType(columnName).equals("decimal")) {
+                // Get input from text box
+                input = ((TextField)vboxInputs.getChildren().get(i)).getText();
+
+                // If empty space, set value to null
+                if(input.isBlank())
+                    input = null;
+                else {
+                    // Otherwise, remove extra characters
+                    input = ((input.replaceAll(",", "")).replaceAll("\\$", ""));
+                    System.out.println("DECIMAL: " + input);
+                }
+            // Varchar/Int/ anything else  TODO: is there anything else?
             } else {
                 // Get input from text box
                  input = ((TextField)vboxInputs.getChildren().get(i)).getText();
