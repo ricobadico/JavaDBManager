@@ -10,6 +10,11 @@ import java.net.URL;
 import java.sql.ResultSet;
 import java.sql.SQLDataException;
 import java.sql.SQLException;
+import java.text.DecimalFormat;
+import java.text.ParsePosition;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import db.Agents;
@@ -22,6 +27,8 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import db.DbManager;
+import javafx.util.converter.DateTimeStringConverter;
+import org.w3c.dom.Text;
 
 public class Controller {
 
@@ -110,8 +117,8 @@ public class Controller {
 
         // Get record names for combo box
         connection = new db.DbManager(); // create manager class (establishes connection)
-        ArrayList<String> agentNames = connection.getRecordNames(chosenTable); // call method to get descriptive names for each record
-        ObservableList cbxContents = FXCollections.observableList(agentNames); // convert to observable list
+        ArrayList<String> recordNames = connection.getRecordNames(chosenTable); // call method to get descriptive names for each record
+        ObservableList cbxContents = FXCollections.observableList(recordNames); // convert to observable list
         cbxRecordList.setItems(cbxContents); // add list to combo box
 
         // Remove existing text fields and labels to make room for the ones this table calls for
@@ -150,12 +157,18 @@ public class Controller {
             columnLabel.setPadding(new Insets(0,0,5,0)); // add a little padding
             vboxLabels.getChildren().add(columnLabel); // attach it to the vbox
 
-            TextField colText = new TextField(); // add a text field
-            colText.setId("txt" + col); // give it an id
-            vboxInputs.getChildren().add(colText); // add it to other vbox
+            // Add an input based on the column's datatype
+            Control colInput;
+            if(findDataType(col).equals("datetime")){ // checks current col's datatype for datetime
+                colInput = new DatePicker();
+            } else {
+                colInput = new TextField(); // add a text field
+            }
+            colInput.setId("txt" + col); // give it an id
+                vboxInputs.getChildren().add(colInput); // add it to other vbox
 
-            // Set textfield to read-only (default until edit mode is entered)
-            colText.setDisable(true);
+            // Set input to read-only (default until edit mode is entered)
+            colInput.setDisable(true);
         }
 
         // Enable second combobox
@@ -165,6 +178,8 @@ public class Controller {
         btnEdit.setDisable(true);
     }
 
+
+
     /**
      * Uses a new selection from the Records combo box to update the application:
      * - Current data for each field in the record are displayed in corresponding text boxes.
@@ -172,7 +187,7 @@ public class Controller {
      */
     private void populateRecordSelection() {
 
-        // Get currently selected agent in combo box
+        // Get currently selected record in combo box
         String chosenItem = cbxRecordList.getSelectionModel().getSelectedItem();
 
         // When switching from one table to another, this event fires with the selection being null.
@@ -187,21 +202,35 @@ public class Controller {
             connection = new db.DbManager(); // create manager class (establishes connection)
             ResultSet record = connection.getRecord(currentTable, chosenID);
 
-            // Iterate through the textfields generated for the page, adding the next bit of data from the result set
+            // Iterate through the inputs generated for the page, adding the next bit of data from the result set
             try {
                 record.next(); // have to call this once to get at the data!
                 for (int i = 0; i < vboxInputs.getChildren().size(); i++) {
-                    // Grab the textfield at that index
-                    TextField tf = (TextField) vboxInputs.getChildren().get(i);
+                    // Grab the input at that index
+                    Control input = (Control) vboxInputs.getChildren().get(i);
                     // Grab the data for that field from the results (adding 1 to match index)
                     String data = record.getObject(i + 1) + "";
                     // If data is null, replace with empty string
                     if (data.equals("null")) {
                         data = "";
                     }
-                    // Set textfield's text to the data
-                    tf.setText(data);
 
+                    // Set input based on column data type. We can find this out by looking at the control's ID, which was generated with it
+                    String colName = input.getId().replace("txt", "");
+                    // Else if decimal
+                    if(findDataType(colName).equals("decimal")) {
+                        //TODO: format as currency
+                        ((TextField) input).setText(data);
+                    }
+                    // Else if date
+                    else if(findDataType(colName).equals("datetime")){
+                        LocalDate timeData = LocalDateTime.parse(data).toLocalDate(); // convert string to date
+                        ((DatePicker)input).setValue(timeData); // set it as default value for datepicker
+                    }
+                    // If anything not needing special formatting (varchar/string, int)
+                    else {
+                        ((TextField) input).setText(data);
+                    }
                 }
 
                 btnEdit.setDisable(false);
@@ -270,11 +299,21 @@ public class Controller {
             // Get column name from labels
             String columnName = ((Label)vboxLabels.getChildren().get(i)).getText();
 
-            // Get input from text box
-            String input = ((TextField)vboxInputs.getChildren().get(i)).getText();
-            // If empty space, set value to null
-            if(input.isBlank())
-                input = null;
+            String input;
+
+            if(findDataType(columnName).equals("datetime")){
+                LocalDate dateInput = ((DatePicker)vboxInputs.getChildren().get(i)).getValue();
+
+                input = dateInput.toString();
+
+            } else {
+                // Get input from text box
+                 input = ((TextField)vboxInputs.getChildren().get(i)).getText();
+
+                // If empty space, set value to null
+                if(input.isBlank())
+                    input = null;
+            }
 
             // Add pair to arraylist
             textInputs.put(columnName, input);
@@ -300,13 +339,24 @@ public class Controller {
 
         }
         // In the event the SQL fails, pop up an alert
-        catch (SQLDataException e) {
+        catch (SQLException e) {
             Alert a = new Alert(Alert.AlertType.WARNING);
             a.setTitle("Bad Update");
             a.setHeaderText("Something went wrong! (Better validation to come)");
             a.setContentText(e.getMessage());
             a.show();
         }
+    }
+
+    public String findDataType(String col) {
+        String datatype = null;
+        try {
+            datatype = (connection.getColumnDataType(currentTable, col)) // gets the full datatype (ie "varchar(10)"
+                    .split("\\(")[0]; // gets just the data type name ("varchar")
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return datatype;
     }
 
 }

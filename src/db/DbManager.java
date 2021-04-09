@@ -210,7 +210,7 @@ public class DbManager {
      * @param tableName The table the record to update exists in
      * @param recordData An array which holds record values for each field in the table, in
      */
-    public void updateRecord(String tableName, HashMap<String, String> recordData) throws SQLDataException {
+    public void updateRecord(String tableName, HashMap<String, String> recordData) throws SQLException {
 
         // Create a set of keys to iterate through
         Set<String> colNames = recordData.keySet();
@@ -253,14 +253,18 @@ public class DbManager {
 
                 // For now we just need the data type name, not the length.
                 // TODO: use length for validation
-                String datatype = dbColumnDataType.split("\\(")[0];
+                String[] dataTypebits =  dbColumnDataType.split("\\("); // this breaks up eg "decimal(19,4)" after the datatype name
+                String datatype = dataTypebits[0]; // the name of the datatype
+                String lengthData; //used below to validate length
 
                 // With the data type, we can determine what parsing action needs to be done to set the param for this column
                 // This is not exhaustive but should work for our purposes
 
                 switch (datatype){
                     case "int":
-                        statement.setInt(i, parseInt(inputValue));
+
+                        int value = parseInt(inputValue);
+                        statement.setInt(i, value);
                         break;
 
                     case "decimal":
@@ -270,6 +274,17 @@ public class DbManager {
                     case "datetime":
                         statement.setDate(i, Date.valueOf(LocalDate.parse(inputValue)));
                         break;
+
+                    case "varchar":
+
+                        // Validate length
+                        lengthData=  dataTypebits[1].split("\\)")[0];
+                        int maxLength = parseInt(lengthData);
+                        if(inputValue != null && inputValue.length() > maxLength){
+                            throw new SQLException(colName +  " exceeds the max number of characters");
+                        }
+
+                        statement.setString(i, inputValue);
 
                     default: // notably for "varchar"
                         statement.setString(i, inputValue);
@@ -284,7 +299,8 @@ public class DbManager {
         }
         // In the event of an error, we throw a new error of a different type with some extra info (the presentation layer is looking for this)
         catch (SQLException e){
-            throw new SQLDataException("There was an error updating the " + currentColumn + " column. Please check the value.");
+            throw e;
+            //throw new SQLDataException("There was an error updating the " + currentColumn + " column. Please check the value.");
         }
     }
 
@@ -296,7 +312,7 @@ public class DbManager {
      * @return String in the form of datatype(maxlength)
      * @throws SQLException
      */
-    private String getColumnDataType(String tableName, String columnName) throws SQLException {
+    public String getColumnDataType(String tableName, String columnName) throws SQLException {
         // Create query to grab column metadate for the chosen column
         String query = "SHOW COLUMNS FROM " +  tableName + " WHERE Field = '" + columnName + "';";
 

@@ -33,13 +33,13 @@ public class Agents implements ITableEntity {
         HashMap<String, String> ColumnLabels = new HashMap<>();
 
         ColumnLabels.put("AgentId", "ID Number:");
-        ColumnLabels.put("AgtFirstName", "First Name");
+        ColumnLabels.put("AgtFirstName", "First Name:");
         ColumnLabels.put("AgtMiddleInitial", "Middle Initial:");
         ColumnLabels.put("AgtLastName", "Last Name:");
         ColumnLabels.put("AgtBusPhone", "Business Phone #:");
         ColumnLabels.put("AgtEmail", "Email:");
         ColumnLabels.put("AgtPosition", "Position:");
-        ColumnLabels.put("AgtPosition", "Position:");
+        ColumnLabels.put("AgencyId", "Agency Id:");
 
         return ColumnLabels;
     }
