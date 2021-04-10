@@ -33,7 +33,7 @@ public class DbManager {
 
         try {
         // Connect using local db url and credentials
-        connection = DriverManager.getConnection(url, "user", "P@ssw0rd");
+        connection = DriverManager.getConnection(url, "root", "");
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }

@@ -77,8 +77,21 @@ public class Controller {
         );
 
         // Set listener for record combo box change
-        cbxRecordList.getSelectionModel().selectedItemProperty().addListener(change ->
-            populateRecordSelection()
+        cbxRecordList.getSelectionModel().selectedItemProperty().addListener(change -> {
+                    // Get currently selected record in combo box
+                    String chosenItem = cbxRecordList.getSelectionModel().getSelectedItem();
+
+                    // When switching from one table to another, this event fires with the selection being null.
+                    // So, we only populate data when a non-null selection is chosen.
+                    if (chosenItem != null) {
+
+                        // Split item on delimiter between ID and rest of name, grab the ID (in first index), parse to int
+                        int chosenID = Integer.parseInt(
+                                chosenItem.split(":")[0]);
+                        populateRecordSelection(chosenID);
+                    }
+                }
+
         );
 
         // Set listener for Edit button
@@ -86,6 +99,14 @@ public class Controller {
 
         // Set listener for Save button
         btnSave.setOnMouseClicked(mouseEvent -> saveInputs());
+    }
+
+    private void populateRecordCBOnly() {
+        // Get record names for combo box
+        connection = new db.DbManager(); // create manager class (establishes connection)
+        ArrayList<String> recordNames = connection.getRecordNames(currentTable); // call method to get descriptive names for each record
+        ObservableList cbxContents = FXCollections.observableList(recordNames); // convert to observable list
+        cbxRecordList.setItems(cbxContents); // add list to combo box
     }
 
     /**
@@ -107,6 +128,7 @@ public class Controller {
                     false, this.getClass().getClassLoader()); // Extra params to make it work
         // Class.forName calls an exception if the class doesn't exist.
         } catch (ClassNotFoundException e) {
+            predefinedClassFile = null;
             System.out.println("Using programmatic defaults");
         }
 
@@ -268,19 +290,9 @@ public class Controller {
      * Uses a new selection from the Records combo box to update the application:
      * - Current data for each field in the record are displayed in corresponding text boxes.
      * - The Edit button is enabled for editing.
+     * TODO: add overload method that takes agentId as a param
      */
-    private void populateRecordSelection() {
-
-        // Get currently selected record in combo box
-        String chosenItem = cbxRecordList.getSelectionModel().getSelectedItem();
-
-        // When switching from one table to another, this event fires with the selection being null.
-        // So, we only populate data when a non-null selection is chosen.
-        if (chosenItem != null) {
-
-            // Split item on delimiter between ID and rest of name, grab the ID (in first index), parse to int
-            int chosenID = Integer.parseInt(
-                    chosenItem.split(":")[0]);
+    private void populateRecordSelection(int chosenID) {
 
             // Use that ID to grab record data
             connection = new db.DbManager(); // create manager class (establishes connection)
@@ -330,7 +342,7 @@ public class Controller {
                 a.show();
             }
         }
-    }
+
 
     /**
      * Puts the app in edit mode:
@@ -374,9 +386,14 @@ public class Controller {
      * TODO: consider concurrency
      */
     private void saveInputs() {
-
         // Create a new connection
         DbManager connection = new DbManager();
+        String pkColumnName = null;
+        try {
+            pkColumnName = connection.getPKColumnForTable(currentTable);
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
 
         // Initialize a string array to hold all textfield inputs
         HashMap<String, String> textInputs = new HashMap<>();
@@ -420,7 +437,9 @@ public class Controller {
             // Add pair to arraylist
             textInputs.put(columnName, input);
         }
-
+        int pkValue = Integer.parseInt(textInputs.get(pkColumnName));
+        //int selectedIndex = cbxRecordList.getSelectionModel().getSelectedIndex();
+        //cbxRecordList.getItems().set(selectedIndex, "1:test");
         // Attempt to update the database with the given values
         try {
             connection.updateRecord(currentTable, textInputs);
@@ -438,7 +457,32 @@ public class Controller {
             a.setTitle("Update Successful");
             a.setContentText("The record has been saved in the database.");
             a.show();
+            //comboboxy stuff
+            ArrayList<String> updatedInfo = connection.getRecordNames(currentTable);
+            int cbLabelIndexPos = 0;
+            for(int i = 0; i < updatedInfo.size(); i++) {
+                int currentID = Integer.parseInt(
+                        updatedInfo.get(i).split(":")[0]);
+                if (currentID == pkValue) {
+                    cbLabelIndexPos = i;
+                }
+            }
+            populateRecordCBOnly();
+            cbxRecordList.getSelectionModel().select(cbLabelIndexPos);
 
+
+            //populateRecordCBOnly();
+
+//            String pkColumn = "input" + connection.getPKColumnForTable(currentTable);
+//            for (Node textfield : vboxInputs.getChildren()) {
+//                System.out.println(textfield.getId());
+//                if( textfield.getId().equals(pkColumn)) { // check if ID corresponds to pk column
+//                    //do the thing
+//                }
+//            }
+
+
+            ///populateRecordSelection(Integer.parseInt(textInputs.get(pkColumn)));
         }
         // In the event the SQL fails, pop up an alert
         catch (SQLException e) {
