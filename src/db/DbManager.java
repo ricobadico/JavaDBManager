@@ -24,7 +24,7 @@ public class DbManager {
     final String DB_NAME = "travelexperts";
 
     // Members
-    private Connection connection;
+    Connection connection;
 
     // Constructor establishes a connection
     public DbManager(){
@@ -330,4 +330,29 @@ public class DbManager {
         return dataType;
 
     }
+
+
+
+    public boolean columnIntValueExists(String tableName, String columnName, int value) throws SQLException {
+
+        // Create sql query with parameter for value, catting in injection-safe parameters
+        String query = "SELECT * FROM " + tableName + " WHERE " + columnName + " = ?";
+        PreparedStatement statement = connection.prepareStatement(query);
+
+        // Attach method arguments to fill query params
+        statement.setInt(1, value);
+
+        // Run statement
+        ResultSet res = statement.executeQuery();
+
+        // If any values returned (ie if there is a .next() to go to), return true
+        if (res.next())
+            return true;
+
+        // If no records, return false
+        else
+           return false;
+
+    }
+
 }
