@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import db.ICustomValidator;
 import db.ITableEntity;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -197,17 +198,58 @@ public class Controller {
             // Set input to read-only (default until edit mode is entered)
             colInput.setDisable(true);
 
-            // TODO: add custom validation, if any, in a Table class
 
-            // Check for table class
-            if(predefinedClassFile != null){
+            // If a preexisting table class exists, add custom validation if any
+            if(predefinedClassFile != null){  // Check for table class
 
-                // TODO - search class for fields with custom validation.
-                //  Possibly this requires the class having a map of column names as keys as validation calls as values.
-                //  We can check the current column name with the colName variable
-                //  This is needed for, for instance, ensuring start date is before end date in packages
+                try {
+                    // Pull out class method that provides a map of additional validation functions (classes implementing ITableEntity are guaranteed to have this)
+                    Method getValidators = predefinedClassFile.getMethod("GetValidators");
+                    HashMap<String, ICustomValidator> additionalValidators = (HashMap<String, ICustomValidator>) getValidators.invoke(predefinedClassFile, null);
 
+                    // Grab the validation corresponding to the current column (if one exists)
+                    if(additionalValidators.containsKey(colName)) {
 
+                        // Grab that validator
+                        ICustomValidator validator = additionalValidators.get(colName);
+
+                        // Add validation check as an on-blur listener for the input
+                        colInput.focusedProperty().addListener((observableValue, aBoolean, t1) -> {
+                            if (observableValue.getValue() == false) {
+
+                                // A little messy here... we always want to pass the input's value as a string when validating,
+                                // but depending on the input given need to grab that differently
+                                String valueToValidate;
+                                if (findDataType(colName).equals("datetime")) // getValue() grabs from date picker
+                                    valueToValidate = ((DatePicker) colInput).getValue().toString();
+                                else // we can use getText() to grab from textfields
+                                    valueToValidate = ((TextField) colInput).getText();
+
+                                // Now, we use the custom validation
+                                try {
+                                    boolean isValid = validator.checkValidity(currentTable, colName, valueToValidate);
+                                // if validation fails, it throws an exception with a useful message we can capture in an alert
+                                } catch (SQLException e) {
+                                    Alert a = new Alert(Alert.AlertType.WARNING);
+                                    a.setTitle("Validation Error");
+                                    a.setHeaderText("Special validation error for " + colName + ".");
+                                    a.setContentText(e.getMessage());
+                                    a.show();
+
+                                    // Highlight the field
+                                    colInput.requestFocus();
+                                    System.out.println("Control class name: " + colInput.getClass().getName());
+                                    if (colInput.getClass().getName().equals("TextField"))
+                                        ((TextField) colInput).selectAll();
+                                }
+
+                            }
+                        });
+                    }
+
+                } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                    e.printStackTrace();
+                }
             }
 
         }
