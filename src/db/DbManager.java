@@ -4,11 +4,9 @@ import javafx.collections.ObservableList;
 
 import java.math.BigDecimal;
 import java.sql.*;
+import java.sql.Date;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Set;
+import java.util.*;
 
 import static java.lang.Integer.parseInt;
 
@@ -304,6 +302,108 @@ public class DbManager {
         }
     }
 
+    public void addRecord(String tableName, HashMap<String, String> recordData) throws SQLException {
+        // Create a set of keys to iterate through
+        Set<String> colNames = recordData.keySet();
+        System.out.println(colNames);
+        //Get primary key column name for current table
+        String pkColName = getPKColumnForTable(tableName);
+        // Initialize a variable for holding current column name (needed in case of exception)
+        String currentColumn = null;
+
+        try {
+
+            // We need to know the primary key column for the table in order to not try to update it
+            //String pkCol = getPKColumnForTable(tableName);
+
+            // Begin creating an insert statement
+            String query = "INSERT INTO " + tableName + " ( "; // create first bit with table name
+            // For each column of data being updated except the primary key, we add the column name and a spot for its param
+            for (String colName : colNames) {
+                    query += colName + ", "; // adds another column update to the query
+            }
+
+            // Finish the update statement
+            query = query.substring(0, query.length() - 2); // remove the trailing ","
+            query += ") VALUES ( "; //+ pkCol + " = " + recordData.get(pkCol); // add a Where clause using the PK column
+            //add a missing update value for each column
+            for(String colName : colNames) {
+                query += "?, ";
+            }
+            query = query.substring(0, query.length() - 2); // remove the trailing ","
+            query += ")";
+
+            System.out.println(query);
+
+            // Add query as a prepared statement
+            PreparedStatement statement = connection.prepareStatement(query);
+
+            int i = 1; // Need a counter for the following loop, but since it's a dictionary for-each is cleaner, we can add a separate counter here
+
+            // Now we set parameters, which will require parsing each record value according to its database type
+            for (String colName : colNames) {
+                System.out.println("Entered data type for loop");
+                currentColumn = colName;
+
+                // First, we need to determine what type the current value should be parsed to
+                String dbColumnDataType = getColumnDataType(tableName, colName);
+
+                // Put the current string value in a variable for shorthand
+                String inputValue = recordData.get(colName);
+                System.out.println(dbColumnDataType + inputValue);
+                // For now we just need the data type name, not the length.
+                // TODO: use length for validation
+                String[] dataTypebits =  dbColumnDataType.split("\\("); // this breaks up eg "decimal(19,4)" after the datatype name
+                String datatype = dataTypebits[0]; // the name of the datatype
+                String lengthData; //used below to validate length
+
+                // With the data type, we can determine what parsing action needs to be done to set the param for this column
+                // This is not exhaustive but should work for our purposes
+
+                switch (datatype){
+                    case "int":
+
+                        int value = parseInt(inputValue);
+                        statement.setInt(i, value);
+                        break;
+
+                    case "decimal":
+                        statement.setBigDecimal(i, new BigDecimal(inputValue));
+                        break;
+
+                    case "datetime":
+                        statement.setDate(i, Date.valueOf(LocalDate.parse(inputValue)));
+                        break;
+
+                    case "varchar":
+
+                        // Validate length
+                        lengthData=  dataTypebits[1].split("\\)")[0];
+                        int maxLength = parseInt(lengthData);
+                        if(inputValue != null && inputValue.length() > maxLength){
+                            throw new SQLException(colName +  " exceeds the max number of characters");
+                        }
+
+                        statement.setString(i, inputValue);
+
+                    default: // notably for "varchar"
+                        statement.setString(i, inputValue);
+                }
+
+                i++; // add to the counter before we go to the next column of data
+            }
+
+            // Execute the statement
+            statement.executeUpdate();
+
+        }
+        // In the event of an error, we throw a new error of a different type with some extra info (the presentation layer is looking for this)
+        catch (SQLException e){
+            throw e;
+            //throw new SQLDataException("There was an error updating the " + currentColumn + " column. Please check the value.");
+        }
+    }
+
     /**
      * Finds the data type (and max length) of a database column in a table.
      *
@@ -353,6 +453,33 @@ public class DbManager {
         else
            return false;
 
+    }
+
+    public boolean columnPrimaryKeyAutoIncrements(String tableName, String columnName) throws SQLException {
+        String query = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='" + tableName + "' AND COLUMN_NAME='"
+                + columnName + "' AND EXTRA LIKE '%auto_increment%'";
+        PreparedStatement statement = connection.prepareStatement(query);
+        // Run statement
+        ResultSet res = statement.executeQuery();
+
+        // If any values returned (ie if there is a .next() to go to), return true
+        if (res.next())
+            return true;
+
+        // If no records, return false
+        else
+            return false;
+
+    }
+
+    public int highestPKValueForTable(String tableName, String pkColName) throws SQLException {
+        String query = "SELECT MAX(" + pkColName + ") FROM " + tableName;
+        System.out.println(query);
+        PreparedStatement statement = connection.prepareStatement(query);
+        // Run statement
+        ResultSet res = statement.executeQuery();
+        res.next();
+        return Integer.parseInt(res.getString(1));
     }
 
 }
