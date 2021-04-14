@@ -295,6 +295,7 @@ public class Controller {
 
         // Enable second combobox
         cbxRecordList.setDisable(false);
+        btnAdd.setDisable(false);
 
         // Disable edit button (until new record is selected)
         btnEdit.setDisable(true);
@@ -310,6 +311,9 @@ public class Controller {
      * TODO: add overload method that takes agentId as a param
      */
     private void populateRecordSelection(int chosenID) {
+
+            // Enable the add button in case it's disabled
+            btnAdd.setDisable(false);
 
             // Use that ID to grab record data
             connection = new db.DbManager(); // create manager class (establishes connection)
@@ -348,7 +352,7 @@ public class Controller {
                         ((TextField) input).setText(data);
                     }
                 }
-                btnAdd.setDisable(false);
+
                 btnEdit.setDisable(false);
 
             } catch (SQLException e) {
@@ -414,12 +418,20 @@ public class Controller {
             System.out.println(pkCol);
             // Enable all text fields (except PK)
             for (Node child : vboxInputs.getChildren()) {
-                TextField tf = (TextField) child;
+                Control tf = (Control) child;
                 //System.out.println(textfield.getId());
                 if( ! tf.getId().equals(IDForPKTextBox)) { // check if ID corresponds to pk column
                     tf.setDisable(false);
                 }
-                tf.setText("");
+                // Clear this field. How we do this depends on the type of input used
+                // If textfield:
+                if ((tf.getClass().getName()).equals("javafx.scene.control.TextField")){
+                    ((TextField) tf).setText("");
+                }
+                // If datepicker:
+                else if ((tf.getClass().getName()).equals("javafx.scene.control.DatePicker")){
+                    ((DatePicker) tf).setValue(LocalDate.now());
+                }
             }
             int highestPK = connection.highestPKValueForTable(currentTable, pkCol);
             System.out.println(highestPK);
