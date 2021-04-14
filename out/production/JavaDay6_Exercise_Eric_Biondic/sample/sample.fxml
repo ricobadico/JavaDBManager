@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="487.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="487.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
    <center>
       <ScrollPane fitToWidth="true" BorderPane.alignment="CENTER">
          <content>
@@ -38,19 +38,25 @@
    <bottom>
       <HBox alignment="CENTER" prefHeight="66.0" prefWidth="600.0" BorderPane.alignment="CENTER">
          <children>
-            <Region prefHeight="200.0" prefWidth="200.0" />
+            <Region prefHeight="200.0" prefWidth="150.0" />
             <Button fx:id="btnEdit" disable="true" minWidth="-Infinity" mnemonicParsing="false" text="Edit" HBox.hgrow="ALWAYS">
                <font>
                   <Font size="18.0" />
                </font>
             </Button>
-            <Region prefHeight="67.0" prefWidth="135.0" />
+            <Region layoutX="285.0" layoutY="10.0" prefHeight="67.0" prefWidth="150.0" />
+            <Button fx:id="btnAdd" disable="true" minWidth="-Infinity" mnemonicParsing="false" text="Add">
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </Button>
+            <Region prefHeight="67.0" prefWidth="150.0" />
             <Button fx:id="btnSave" alignment="CENTER" disable="true" minWidth="-Infinity" mnemonicParsing="false" text="Save">
                <font>
                   <Font size="18.0" />
                </font>
             </Button>
-            <Region prefHeight="200.0" prefWidth="200.0" />
+            <Region prefHeight="200.0" prefWidth="150.0" />
          </children>
       </HBox>
    </bottom>

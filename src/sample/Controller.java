@@ -188,6 +188,7 @@ public class Controller {
             // Set up other label formatting
             columnLabel.setStyle("-fx-font: 16 System"); // update size
             columnLabel.setPadding(new Insets(0,0,5,0)); // add a little padding
+            columnLabel.setId("lbl" + colName);
             vboxLabels.getChildren().add(columnLabel); // attach it to the vbox
 
             // Add an input and listeners based on the column's datatype
@@ -469,7 +470,8 @@ public class Controller {
         // Gather the text boxes data
         for(int i = 0; i < vboxInputs.getChildren().size(); i++) {
             // Get column name from labels
-            String columnName = ((Label) vboxLabels.getChildren().get(i)).getText();
+            String columnName = ((Label) vboxLabels.getChildren().get(i)) // get the current label
+                    .getId().substring(3); // and get the id (eg "lblAgentId") and remove the lbl to get the SQL column name
 
             String input;
             if (connection.columnPrimaryKeyAutoIncrements(currentTable, pkColumnName)) {
@@ -625,7 +627,8 @@ public class Controller {
         // Gather the text boxes data
         for(int i = 0; i < vboxInputs.getChildren().size(); i++){
             // Get column name from labels
-            String columnName = ((Label)vboxLabels.getChildren().get(i)).getText();
+            String columnName = ((Label)vboxLabels.getChildren().get(i)) // get the current label
+                    .getId().substring(3); // and get the id (eg "lblAgentId") and remove the lbl to get the SQL column name;
 
             String input;
 
