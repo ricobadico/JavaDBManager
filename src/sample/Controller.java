@@ -645,7 +645,7 @@ public class Controller {
         catch (SQLException e) {
             Alert a = new Alert(Alert.AlertType.WARNING);
             a.setTitle("Bad Update");
-            a.setHeaderText("Something went wrong! (Better validation to come)");
+            a.setHeaderText("Something went wrong!");
             a.setContentText(e.getMessage());
             a.show();
         }
@@ -751,7 +751,7 @@ public class Controller {
         catch (SQLException e) {
             Alert a = new Alert(Alert.AlertType.WARNING);
             a.setTitle("Bad Update");
-            a.setHeaderText("Something went wrong! (Better validation to come)");
+            a.setHeaderText("Something went wrong!");
             a.setContentText(e.getMessage());
             a.show();
         }

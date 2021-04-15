@@ -432,18 +432,23 @@ public class DbManager {
 
                 switch (datatype){
                     case "int":
-
-                        int value = parseInt(inputValue);
-                        statement.setInt(i, value);
-                        break;
+                        if(inputValue != null) {
+                            int value = parseInt(inputValue);
+                            statement.setInt(i, value);
+                            break;
+                        }
 
                     case "decimal":
-                        statement.setBigDecimal(i, new BigDecimal(inputValue));
-                        break;
+                        if(inputValue != null) {
+                            statement.setBigDecimal(i, new BigDecimal(inputValue));
+                            break;
+                        }
 
                     case "datetime":
-                        statement.setDate(i, Date.valueOf(LocalDate.parse(inputValue)));
-                        break;
+                        if(inputValue != null) {
+                            statement.setDate(i, Date.valueOf(LocalDate.parse(inputValue)));
+                            break;
+                        }
 
                     case "varchar":
 
