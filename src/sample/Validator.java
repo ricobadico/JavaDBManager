@@ -1,7 +1,10 @@
 package sample;
 
+import db.DbManager;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
+
+import java.sql.SQLException;
 
 public class Validator {
 
@@ -33,5 +36,43 @@ public class Validator {
             return false;
 
         }
+    }
+
+    public static boolean foreignKeyConstraintMet(String colName, String foreignKeyTable, String foreignKeyColumn, TextField colInput) {
+
+        String value = colInput.getText();
+
+        // Set up a db connection
+        DbManager connection = new DbManager();
+
+        // Check if this value exists among the values that the given column (a foreign key) references
+        boolean constraintMet = false;
+        try {
+            constraintMet = connection.columnStringValueExists(foreignKeyTable, foreignKeyColumn, value);
+        } catch (SQLException e) {
+            // Throws an error if false, so we show a message instead
+            e.printStackTrace();
+            Alert a = new Alert(Alert.AlertType.WARNING);
+            a.setTitle("Database Error");
+            a.setHeaderText("Something went wrong connecting to the database.");
+            a.setContentText(e.getMessage());
+            a.show();
+
+            // Highlight the field
+            colInput.requestFocus();
+            colInput.selectAll();
+        }
+        if(constraintMet == false){
+            Alert a = new Alert(Alert.AlertType.WARNING);
+            a.setTitle("Validation Error");
+            a.setHeaderText("Please provide a valid value for " + colName + ".");
+            a.setContentText("Value must be found in the " + foreignKeyColumn + " column in " + foreignKeyTable + ".");
+            a.show();
+
+            // Highlight the field
+            colInput.requestFocus();
+            colInput.selectAll();
+        }
+        return constraintMet;
     }
 }

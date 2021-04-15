@@ -179,6 +179,8 @@ public class Controller {
 
             Label columnLabel = new Label(colName); // create a new label with that name
 
+            DbManager.ForeignKeyReference egg = connection.getForeignKeyReferences(currentTable, colName);
+
             // Update to use the column's display label (if defined in the class)
             if(formattedColumnLabels != null) {
                 // Find the formatted label associated with the actual db column name (in colName variable)
@@ -191,13 +193,12 @@ public class Controller {
             columnLabel.setId("lbl" + colName);
             vboxLabels.getChildren().add(columnLabel); // attach it to the vbox
 
-            // Add an input and listeners based on the column's datatype
+            // ** Add an input and listeners based on the column's datatype
             Control colInput;
 
             // Datetime data: create datepicker
             if(findDataType(colName).equals("datetime")) {
                 colInput = new DatePicker();
-
             }
 
             // Decimal data: create textbox with decimal formatting and validation
@@ -233,6 +234,22 @@ public class Controller {
             }
             colInput.setId("input" + colName); // give it an id
                 vboxInputs.getChildren().add(colInput); // add it to other vbox
+
+            // Add foreign key reference validation if needed (regardless of data type)
+            // Call DB inforomation schema to see if this column is a foreign key, and if so, to what
+            // TODO: this should probably check only on hitting save, not on blur
+            DbManager.ForeignKeyReference fkRef = connection.getForeignKeyReferences(currentTable, colName);
+            if(colInput.getClass().getName().equals("javafx.scene.control.TextField") // not going to add this to datepickers, shouldn't be fk
+                    && fkRef != null){ // if a fk reference to a pk was found..
+                // Add validation on leaving textfield
+                colInput.focusedProperty().addListener((observableValue, aBoolean, t1) -> {
+                    if (observableValue.getValue() == false) {
+
+                        // Check to see if the inputted value exists in the db
+                        Validator.foreignKeyConstraintMet(colName, fkRef.getForeignKeyRefTable(), fkRef.getForeignKeyRefColumn(), (TextField) colInput);
+                    }
+                });
+            }
 
             // Set input to read-only (default until edit mode is entered)
             colInput.setDisable(true);

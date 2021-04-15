@@ -62,20 +62,27 @@ public class Agents implements ITableEntity {
 
         HashMap<String, ICustomValidator> columnValidators = new HashMap<>();
 
+
+        /**
+         * New validation methods go here: they should return true or throw an exception to be caught
+         */
         // Validator for AgencyID: checks to ensure foreign key constraints met (AgencyID exists in other column)
-        columnValidators.put("AgencyId", (tableName, columnName, value) -> {
+//        columnValidators.put("AgencyId", (tableName, columnName, value) -> {
+//
+//            DbManager db = new DbManager();
+//            boolean isValid = db.columnIntValueExists("Agencies", "AgencyId", Integer.parseInt(value));
+//            if(isValid == false) {
+//                throw new SQLException("The provided agency ID does not exist in the database");
+//            }
+//            return true;
+//        });
 
-            DbManager db = new DbManager();
-            boolean isValid = db.columnIntValueExists("Agencies", "AgencyId", Integer.parseInt(value));
-            if(isValid == false) {
-                throw new SQLException("The provided agency ID does not exist in the database");
-            }
-            return true;
+        /**
+         * More validators for columns in this table can go here
+         */
 
-        });
-
+        // Return back the map of validators
         return columnValidators;
-
     }
 
 

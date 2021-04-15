@@ -90,8 +90,6 @@ public class DbManager {
             // Attach method arguments to fill query params
             statement.setInt(1, id);
 
-            System.out.println(statement);
-
             // Run statement
             res = statement.executeQuery();
 
@@ -124,6 +122,77 @@ public class DbManager {
         // The fifth column of this query contains the Column name for the primary key
         pkColumn = pkRes.getString(5);
         return pkColumn;
+    }
+
+    /**
+     * DTO class designed to hold the table and column of a PK that a FK references.
+     * Returned by the getForeignKeyReferences method below.
+     */
+    public class ForeignKeyReference {
+        private final String foreignKeyTable;
+        private final String foreignKeyColumn;
+
+        public ForeignKeyReference(String foreignKeyTable, String foreignKeyColumn) {
+            this.foreignKeyTable = foreignKeyTable;
+            this.foreignKeyColumn = foreignKeyColumn;
+        }
+
+        public String getForeignKeyRefTable() {
+            return foreignKeyTable;
+        }
+
+        public String getForeignKeyRefColumn() {
+            return foreignKeyColumn;
+        }
+    }
+
+    /**
+     * Queries the DB to see if the passed in column is a foreign key that references
+     * any other primary keys in the database. If so, the referenced primary key's
+     * table and column name are returned.
+     * @param tableName
+     * @param colName
+     * @return
+     */
+    public ForeignKeyReference getForeignKeyReferences(String tableName, String colName){
+
+        ForeignKeyReference fkRef = null;
+
+        try {
+            // Create sql query to check information schema to see if the given column is a foreign key,
+            // and if so, to what PK
+            String query =
+                    "SELECT REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME " +
+                        "FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE " +
+                        "WHERE REFERENCED_TABLE_SCHEMA = 'travelexperts' " +
+                        "AND TABLE_NAME = ? " +
+                        "AND COLUMN_NAME = ?;";
+            PreparedStatement statement = connection.prepareStatement(query);
+
+            // Attach method arguments to fill query params
+            statement.setString(1, tableName);
+            statement.setString(2, colName);
+
+            // Run statement
+            ResultSet res = statement.executeQuery();
+
+            // Check to see if res found anything
+            if (res.next()){
+                // If so, put the referenced table and column in an object to return
+                String tableRef = res.getString(1);
+                String colNameRef = res.getString(2);
+                fkRef = new ForeignKeyReference(tableRef, colNameRef);
+                return fkRef;
+            }
+
+            // Otherwise, the given column is not a FK, so return null
+            return null; //todo
+
+        }
+        catch (SQLException e){
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
@@ -432,7 +501,16 @@ public class DbManager {
     }
 
 
-
+    /**
+     * Checks the db to see if a table column contains a particular value.
+     * Used to check foreign key constraints.
+     * A near-overload of this exists to check for string values (columnStringValueExists)
+     * @param tableName the table to search
+     * @param columnName the column within that table to search
+     * @param value the value to be searched for
+     * @return true if the value exists
+     * @throws SQLException
+     */
     public boolean columnIntValueExists(String tableName, String columnName, int value) throws SQLException {
 
         // Create sql query with parameter for value, catting in injection-safe parameters
@@ -452,6 +530,38 @@ public class DbManager {
         // If no records, return false
         else
            return false;
+
+    }
+
+    /**
+     ** Checks the db to see if a table column contains a particular value.
+     * Used to check foreign key constraints.
+     * A near-overload of this exists to check for string values (columnStringValueExists)
+     * @param tableName the table to search
+     * @param columnName the column within that table to search
+     * @param value the value to be searched for
+     * @return true if the value exists
+     * @throws SQLException
+     */
+    public boolean columnStringValueExists(String tableName, String columnName, String value) throws SQLException {
+
+        // Create sql query with parameter for value, catting in injection-safe parameters
+        String query = "SELECT * FROM " + tableName + " WHERE " + columnName + " = ?";
+        PreparedStatement statement = connection.prepareStatement(query);
+
+        // Attach method arguments to fill query params
+        statement.setString(1, value);
+
+        // Run statement
+        ResultSet res = statement.executeQuery();
+
+        // If any values returned (ie if there is a .next() to go to), return true
+        if (res.next())
+            return true;
+
+            // If no records, return false
+        else
+            return false;
 
     }
 
