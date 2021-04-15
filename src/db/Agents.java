@@ -9,28 +9,28 @@ import java.util.HashMap;
 
 public class Agents implements ITableEntity {
 
-    // DB Fields
-    private int AgentId;
-    private String AgtFirstName;
-    private String AgtMiddleInitial;
-    private String AgtLastName;
-    private String BusPhone;
-    private String AgtEmail;
-    private String AgtPosition;
-    private int AgencyId;
-
-    // Constructor
-    public Agents(int agentId, String agtFirstName, String agtMiddleInitial, String agtLastName, String busPhone, String agtEmail, String agtPosition, int agencyId) {
-        AgentId = agentId;
-        AgtFirstName = agtFirstName;
-        AgtMiddleInitial = agtMiddleInitial;
-        AgtLastName = agtLastName;
-        BusPhone = busPhone;
-        AgtEmail = agtEmail;
-        AgtPosition = agtPosition;
-        AgencyId = agencyId;
-
-    }
+//    // DB Fields
+//    private int AgentId;
+//    private String AgtFirstName;
+//    private String AgtMiddleInitial;
+//    private String AgtLastName;
+//    private String BusPhone;
+//    private String AgtEmail;
+//    private String AgtPosition;
+//    private int AgencyId;
+//
+//    // Constructor
+//    public Agents(int agentId, String agtFirstName, String agtMiddleInitial, String agtLastName, String busPhone, String agtEmail, String agtPosition, int agencyId) {
+//        AgentId = agentId;
+//        AgtFirstName = agtFirstName;
+//        AgtMiddleInitial = agtMiddleInitial;
+//        AgtLastName = agtLastName;
+//        BusPhone = busPhone;
+//        AgtEmail = agtEmail;
+//        AgtPosition = agtPosition;
+//        AgencyId = agencyId;
+//
+//    }
 
     /**
      * Provides a map of preferred labels for column names in this table.

@@ -747,7 +747,7 @@ public class Controller {
                     cbLabelIndexPos = i;
                 }
             }
-            //Populate the record combo box
+            //Populate the record combo box //TODO: have this update with the custom record names if a predifined class is used
             populateRecordCBOnly();
             //Select the record that was edited
             cbxRecordList.getSelectionModel().select(cbLabelIndexPos);
