@@ -86,7 +86,38 @@ public class Agents implements ITableEntity {
     }
 
 
+    public static ArrayList<String> GetRecordNames() throws SQLException {
 
+        ArrayList<String> recordNames = new ArrayList<>();
+
+        // Get all records from a table
+        DbManager db = new DbManager();
+        ResultSet res = db.getRecords("agents"); /** Be sure to change the table name here if copying this to another class*/
+
+        // For each record..
+        while(res.next()){
+
+            // Create a blank String we'll build up into a record name
+            String recordname = "";
+
+            // Build up the string using values from the record
+            // To do this, refer to the column index numbers in the database
+            // TODO: Right now, the first part of the label MUST be the Id# followed by a ":". We may change this later?
+            /**
+             *  Other than the table name above, this block is the only thing in this method that can't be copied and pasted from class to class
+             */
+            recordname  += res.getString(1) + ": "; // AgentId
+            recordname  += res.getString(2) // AgentFirstName
+                        + " " + res.getString(4); // AgentLastName
+
+            // Once the string is built, add it to the array
+            recordNames.add(recordname);
+        }
+
+        // return the filled array
+        return recordNames;
+
+    }
 
 
 

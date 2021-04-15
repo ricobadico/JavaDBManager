@@ -147,11 +147,27 @@ public class Controller {
             predefinedClassFile = null;
             System.out.println("Using programmatic defaults");
         }
-
+        //TODO AOOGA
         // Get record names for combo box
-        connection = new db.DbManager(); // create manager class (establishes connection)
-        ArrayList<String> recordNames = connection.getRecordNames(chosenTable); // call method to get descriptive names for each record
-        ObservableList cbxContents = FXCollections.observableList(recordNames); // convert to observable list
+        connection = new db.DbManager();
+        ArrayList<String> recordNames = null;
+        ObservableList cbxContents;
+        // If a class has been predefined, it will have its own custom record names
+        if(predefinedClassFile != null) {
+            try {
+                // call method to get descriptive names for each record
+                Method getRecordNames = predefinedClassFile.getMethod("GetRecordNames");
+                recordNames = (ArrayList<String>) getRecordNames.invoke(predefinedClassFile, null);
+
+            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                e.printStackTrace();
+            }
+        // Otherwise, create defaults record names
+        } else{
+            recordNames = connection.getRecordNames(chosenTable); // call method to get descriptive names for each record
+        }
+        // Now, attach those record names to the combo box
+        cbxContents = FXCollections.observableList(recordNames); // convert to observable list
         cbxRecordList.setItems(cbxContents); // add list to combo box
 
         // Remove existing text fields and labels to make room for the ones this table calls for
