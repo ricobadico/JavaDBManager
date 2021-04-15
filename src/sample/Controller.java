@@ -494,7 +494,6 @@ public class Controller {
         else if (userMode == "insert") {
             saveInsert();
         }
-        userMode = null;
     }
 
     private void saveInsert() throws SQLException {
@@ -617,6 +616,9 @@ public class Controller {
             btnEdit.setDisable(false);
             btnSave.setDisable(true);
 
+            // Get outta insert mode
+            userMode = null;
+
             // Let user know all worked!
             Alert a = new Alert(Alert.AlertType.INFORMATION);
             a.setTitle("Add Successful");
@@ -724,6 +726,9 @@ public class Controller {
             // Toggle button enables
             btnEdit.setDisable(false);
             btnSave.setDisable(true);
+
+            // Get outta update mode
+            userMode = null;
 
             // Let user know all worked!
             Alert a = new Alert(Alert.AlertType.INFORMATION);
