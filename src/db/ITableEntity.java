@@ -1,5 +1,6 @@
 package db;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 // A little interface that Table classes should inherit.
@@ -19,4 +20,10 @@ public interface ITableEntity {
      */
     public static HashMap<String, ICustomValidator> GetValidators() { return null; }
 
+    /**
+     * Provides a list of record names (the label for the entire record, that goes in a dropdown) for the entire table.
+     * Each record name MUST start with the PK Id number followed by a colon.
+     * @return list of record names
+     */
+    public static ArrayList<String> GetRecordNames() {return null; }
 }
