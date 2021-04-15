@@ -177,6 +177,7 @@ public class DbManager {
             ResultSet res = statement.executeQuery();
 
             // Check to see if res found anything
+            // todo: probably need to think about compound key references at some point
             if (res.next()){
                 // If so, put the referenced table and column in an object to return
                 String tableRef = res.getString(1);
@@ -186,7 +187,7 @@ public class DbManager {
             }
 
             // Otherwise, the given column is not a FK, so return null
-            return null; //todo
+            return null;
 
         }
         catch (SQLException e){
