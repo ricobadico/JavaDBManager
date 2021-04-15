@@ -301,8 +301,6 @@ public class DbManager {
             query = query.substring(0, query.length() - 2); // remove the trailing ","
             query += " WHERE " + pkCol + " = " + recordData.get(pkCol); // add a Where clause using the PK column
 
-            System.out.println(query);
-
             // Add query as a prepared statement
             PreparedStatement statement = connection.prepareStatement(query);
 
@@ -375,7 +373,6 @@ public class DbManager {
     public void addRecord(String tableName, HashMap<String, String> recordData) throws SQLException {
         // Create a set of keys to iterate through
         Set<String> colNames = recordData.keySet();
-        System.out.println(colNames);
         //Get primary key column name for current table
         String pkColName = getPKColumnForTable(tableName);
         // Initialize a variable for holding current column name (needed in case of exception)
@@ -402,8 +399,6 @@ public class DbManager {
             }
             query = query.substring(0, query.length() - 2); // remove the trailing ","
             query += ")";
-
-            System.out.println(query);
 
             // Add query as a prepared statement
             PreparedStatement statement = connection.prepareStatement(query);
@@ -491,8 +486,6 @@ public class DbManager {
         // Create query to grab column metadate for the chosen column
         String query = "SHOW COLUMNS FROM " +  tableName + " WHERE Field = '" + columnName + "';";
 
-        System.out.println(query);
-
         // Run the query
         Statement statement = connection.createStatement();
         ResultSet res=  statement.executeQuery(query);
@@ -501,7 +494,6 @@ public class DbManager {
         res.next(); // get first record (should just be one)
         String dataType = res.getString(2);
 
-        System.out.println(dataType);
         return dataType;
 
     }
@@ -590,7 +582,6 @@ public class DbManager {
 
     public int highestPKValueForTable(String tableName, String pkColName) throws SQLException {
         String query = "SELECT MAX(" + pkColName + ") FROM " + tableName;
-        System.out.println(query);
         PreparedStatement statement = connection.prepareStatement(query);
         // Run statement
         ResultSet res = statement.executeQuery();

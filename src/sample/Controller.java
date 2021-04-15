@@ -404,7 +404,7 @@ public class Controller {
      * - Enables save button.
      */
     private void enterEditMode() {
-        userMode = "edit";
+        userMode = "update";
         // We want to figure out which column is the PK so we can keep it disabled
         try {
             // Figure out which column is PK
