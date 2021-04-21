@@ -1,8 +1,9 @@
 package db;
 
 import java.sql.SQLException;
+import java.util.HashMap;
 
-public interface ICustomValidator {
+public abstract class CustomValidator {
 
     /** Little interface for checking the validity of one value based on its intended column.
      * Designed to be extra validation checks above standard sql data requirements.
@@ -10,6 +11,7 @@ public interface ICustomValidator {
      * it is possible to query other database data, or use "inputCOLUMNNAME" (eg "inputAgentId")
      * to get at the Control for another column's current input in-app.
      */
-    boolean checkValidity(String tableName, String columnName, String value) throws SQLException;
+
+    public abstract boolean checkValidity(HashMap <String, String> args) throws SQLException;
 
 }

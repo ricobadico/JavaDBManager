@@ -14,7 +14,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import db.ICustomValidator;
+import db.CustomValidator;
 import db.ITableEntity;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -213,13 +213,13 @@ public class Controller {
             Control colInput;
 
             // Datetime data: create datepicker
-            if(findDataType(colName).equals("datetime")) {
+            if(connection.findDataType(currentTable, colName).equals("datetime")) {
                 colInput = new DatePicker();
             }
 
             // Decimal data: create textbox with decimal formatting and validation
-            else if (findDataType(colName).equals("decimal")) {
-                colInput = new ValidatingTextField(); // add a text field
+            else if (connection.findDataType(currentTable, colName).equals("decimal")) {
+                colInput = new ValidatingTextField(currentTable, colName); // add a text field
 
                 // Add an on-blur listener that will format the input to a nice currency display
                 DecimalFormat myFormat = new DecimalFormat("$###,##0.00");
@@ -229,8 +229,8 @@ public class Controller {
                 });
 
             // Int data: create textbox and add int validation
-            } else if (findDataType(colName).equals("int")) {
-                colInput = new ValidatingTextField(); // add a text field
+            } else if (connection.findDataType(currentTable, colName).equals("int")) {
+                colInput = new ValidatingTextField(currentTable, colName); // add a text field
 
                 // Add validation on leaving textfield
                 colInput.focusedProperty().addListener((observableValue, aBoolean, t1) -> {
@@ -246,7 +246,7 @@ public class Controller {
             // TODO: add varchar length validation here instead of elsewhere
             // TODO: Figure out if there are other data types this should be checking for
             } else {
-                colInput = new ValidatingTextField(); // add a text field
+                colInput = new ValidatingTextField(currentTable, colName); // add a text field
             }
             colInput.setId("input" + colName); // give it an id
                 vboxInputs.getChildren().add(colInput); // add it to other vbox
@@ -274,53 +274,27 @@ public class Controller {
             // If a preexisting table class exists, add custom validation if any
             if(predefinedClassFile != null){  // Check for table class
 
+                // Pull out class method that provides a map of additional validation functions (classes implementing ITableEntity are guaranteed to have this)
+                Method getValidators = null;
+                HashMap<String, CustomValidator> additionalValidators = null;
                 try {
-                    // Pull out class method that provides a map of additional validation functions (classes implementing ITableEntity are guaranteed to have this)
-                    Method getValidators = predefinedClassFile.getMethod("GetValidators");
-                    HashMap<String, ICustomValidator> additionalValidators = (HashMap<String, ICustomValidator>) getValidators.invoke(predefinedClassFile, null);
-
-                    // Grab the validation corresponding to the current column (if one exists)
-                    if(additionalValidators.containsKey(colName)) {
-
-                        // Grab that validator
-                        ICustomValidator validator = additionalValidators.get(colName);
-
-                        // Add validation check as an on-blur listener for the input
-                        colInput.focusedProperty().addListener((observableValue, aBoolean, t1) -> {
-                            if (observableValue.getValue() == false) {
-
-                                // A little messy here... we always want to pass the input's value as a string when validating,
-                                // but depending on the input given need to grab that differently
-                                String valueToValidate;
-                                if (findDataType(colName).equals("datetime")) // getValue() grabs from date picker
-                                    valueToValidate = ((DatePicker) colInput).getValue().toString();
-                                else // we can use getText() to grab from textfields
-                                    valueToValidate = ((ValidatingTextField) colInput).getText();
-
-                                // Now, we use the custom validation
-                                try {
-                                    boolean isValid = validator.checkValidity(currentTable, colName, valueToValidate);
-                                // if validation fails, it throws an exception with a useful message we can capture in an alert
-                                } catch (SQLException e) {
-                                    Alert a = new Alert(Alert.AlertType.WARNING);
-                                    a.setTitle("Validation Error");
-                                    a.setHeaderText("Special validation error for " + colName + ".");
-                                    a.setContentText(e.getMessage());
-                                    a.show();
-
-                                    // Highlight the field
-                                    colInput.requestFocus();
-                                    System.out.println("Control class name: " + colInput.getClass().getName());
-                                    if (colInput.getClass().getName().equals("ValidatingTextField"))
-                                        ((ValidatingTextField) colInput).selectAll();
-                                }
-
-                            }
-                        });
-                    }
-
+                    getValidators = predefinedClassFile.getMethod("GetValidators");
+                    additionalValidators = (HashMap<String, CustomValidator>) getValidators.invoke(predefinedClassFile, null);
                 } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                     e.printStackTrace();
+                }
+
+                //In the event that any of those validators refer to the current column, we add it to the control
+                if(additionalValidators.containsKey(colName)) {
+
+                    // Grab that validator
+                    CustomValidator validator = additionalValidators.get(colName);
+
+                    // Add that validator to the internal list of validators (so we can run them later on clicking Save)
+                    ((IValidates) colInput).addValidator(validator);
+
+                    //Set
+                    ((IValidates) colInput).addOnBlurValidation();
                 }
             }
 
@@ -368,7 +342,7 @@ public class Controller {
                     // Set input based on column data type. We can find this out by looking at the control's ID, which was generated with it
                     String colName = input.getId().replace("input", "");
                     // Else if decimal
-                    if(findDataType(colName).equals("decimal")) {
+                    if(connection.findDataType(currentTable, colName).equals("decimal")) {
                         DecimalFormat myFormat = new DecimalFormat("$###,##0.00");
                         //Format as currency
                         double dataAsDecimal = Double.valueOf((data.replaceAll(",","").replaceAll("\\$","")));
@@ -376,7 +350,7 @@ public class Controller {
                         ((ValidatingTextField) input).setText(myFormat.format(dataAsDecimal));
                     }
                     // Else if date
-                    else if(findDataType(colName).equals("datetime")){
+                    else if(connection.findDataType(currentTable, colName).equals("datetime")){
                         LocalDate timeData = LocalDateTime.parse(data).toLocalDate(); // convert string to date
                         ((DatePicker)input).setValue(timeData); // set it as default value for datepicker
                     }
@@ -525,12 +499,12 @@ public class Controller {
 
                     // We need to process the data a bit based on the data type in the db
                     // Datetime: pulled from DatePicker
-                    if (findDataType(columnName).equals("datetime")) {
+                    if (connection.findDataType(currentTable, columnName).equals("datetime")) {
                         LocalDate dateInput = ((DatePicker) vboxInputs.getChildren().get(i)).getValue();
                         input = dateInput.toString();
 
                         // Decimal: Pulled from textfield, needs to be stripped of currency characters if not null
-                    } else if (findDataType(columnName).equals("decimal")) {
+                    } else if (connection.findDataType(currentTable, columnName).equals("decimal")) {
                         // Get input from text box
                         input = ((ValidatingTextField) vboxInputs.getChildren().get(i)).getText();
 
@@ -570,12 +544,12 @@ public class Controller {
                 else {
                     // We need to process the data a bit based on the data type in the db
                     // Datetime: pulled from DatePicker
-                    if (findDataType(columnName).equals("datetime")) {
+                    if (connection.findDataType(currentTable, columnName).equals("datetime")) {
                         LocalDate dateInput = ((DatePicker) vboxInputs.getChildren().get(i)).getValue();
                         input = dateInput.toString();
 
                         // Decimal: Pulled from textfield, needs to be stripped of currency characters if not null
-                    } else if (findDataType(columnName).equals("decimal")) {
+                    } else if (connection.findDataType(currentTable, columnName).equals("decimal")) {
                         // Get input from text box
                         input = ((ValidatingTextField) vboxInputs.getChildren().get(i)).getText();
 
@@ -681,12 +655,12 @@ public class Controller {
 
             // We need to process the data a bit based on the data type in the db
             // Datetime: pulled from DatePicker
-            if(findDataType(columnName).equals("datetime")){
+            if(connection.findDataType(currentTable, columnName).equals("datetime")){
                 LocalDate dateInput = ((DatePicker)vboxInputs.getChildren().get(i)).getValue();
                 input = dateInput.toString();
 
             // Decimal: Pulled from textfield, needs to be stripped of currency characters if not null
-            } else if(findDataType(columnName).equals("decimal")) {
+            } else if(connection.findDataType(currentTable, columnName).equals("decimal")) {
                 // Get input from text box
                 input = ((ValidatingTextField)vboxInputs.getChildren().get(i)).getText();
 
@@ -762,15 +736,6 @@ public class Controller {
         }
     }
 
-    public String findDataType(String col) {
-        String datatype = null;
-        try {
-            datatype = (connection.getColumnDataType(currentTable, col)) // gets the full datatype (ie "varchar(10)"
-                    .split("\\(")[0]; // gets just the data type name ("varchar")
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-        return datatype;
-    }
+
 
 }

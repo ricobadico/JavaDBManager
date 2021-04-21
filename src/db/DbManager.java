@@ -589,4 +589,15 @@ public class DbManager {
         return Integer.parseInt(res.getString(1));
     }
 
+    public String findDataType(String table, String col) {
+        String datatype = null;
+        try {
+            datatype = (getColumnDataType(table, col)) // gets the full datatype (ie "varchar(10)"
+                    .split("\\(")[0]; // gets just the data type name ("varchar")
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return datatype;
+    }
+
 }

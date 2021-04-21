@@ -8,4 +8,13 @@ import javafx.scene.control.*;
  */
 public class ValidatingTextField extends TextField implements IValidates{
 
+    // Extra fields this keeps track of
+    String tableName;
+    String columnName;
+
+    public ValidatingTextField(String tableName, String columnName) {
+        super();
+        this.tableName = tableName;
+        this.columnName = columnName;
+    }
 }

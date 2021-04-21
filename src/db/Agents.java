@@ -58,14 +58,16 @@ public class Agents implements ITableEntity {
      * This allows the program to run those validators or add them to listeners when working with data for those particular columns.
      * @return Map with an array of validation methods for keyed column.
      */
-    public static HashMap<String, ICustomValidator> GetValidators(){
+    public static HashMap<String, CustomValidator> GetValidators(){
 
-        HashMap<String, ICustomValidator> columnValidators = new HashMap<>();
+        HashMap<String, CustomValidator> columnValidators = new HashMap<>();
 
 
         /**
          * New validation methods go here: they should return true or throw an exception to be caught
          */
+        //TODO: fix template! should take HashMap<String,String> args, which should include those three values
+
         // Validator for AgencyID: checks to ensure foreign key constraints met (AgencyID exists in other column)
 //        columnValidators.put("AgencyId", (tableName, columnName, value) -> {
 //
