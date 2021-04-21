@@ -219,25 +219,25 @@ public class Controller {
 
             // Decimal data: create textbox with decimal formatting and validation
             else if (findDataType(colName).equals("decimal")) {
-                colInput = new TextField(); // add a text field
+                colInput = new ValidatingTextField(); // add a text field
 
                 // Add an on-blur listener that will format the input to a nice currency display
                 DecimalFormat myFormat = new DecimalFormat("$###,##0.00");
                 colInput.focusedProperty().addListener((observableValue, aBoolean, t1) -> {
                     if (observableValue.getValue() == false)
-                        FormatHelper.formatCurrency((TextField) colInput, myFormat);
+                        FormatHelper.formatCurrency((ValidatingTextField) colInput, myFormat);
                 });
 
             // Int data: create textbox and add int validation
             } else if (findDataType(colName).equals("int")) {
-                colInput = new TextField(); // add a text field
+                colInput = new ValidatingTextField(); // add a text field
 
                 // Add validation on leaving textfield
                 colInput.focusedProperty().addListener((observableValue, aBoolean, t1) -> {
                     if (observableValue.getValue() == false) {
 
                         // Run int validation
-                        Validator.isPositiveInt(colName, (TextField) colInput);
+                        ValidationManager.isPositiveInt(colName, (ValidatingTextField) colInput);
 
                     }
                 });
@@ -246,7 +246,7 @@ public class Controller {
             // TODO: add varchar length validation here instead of elsewhere
             // TODO: Figure out if there are other data types this should be checking for
             } else {
-                colInput = new TextField(); // add a text field
+                colInput = new ValidatingTextField(); // add a text field
             }
             colInput.setId("input" + colName); // give it an id
                 vboxInputs.getChildren().add(colInput); // add it to other vbox
@@ -255,14 +255,14 @@ public class Controller {
             // Call DB inforomation schema to see if this column is a foreign key, and if so, to what
             // TODO: this should probably check only on hitting save, not on blur
             DbManager.ForeignKeyReference fkRef = connection.getForeignKeyReferences(currentTable, colName);
-            if(colInput.getClass().getName().equals("javafx.scene.control.TextField") // not going to add this to datepickers, shouldn't be fk
+            if(colInput.getClass().getName().equals("sample.ValidatingTextField") // not going to add this to datepickers, shouldn't be fk
                     && fkRef != null){ // if a fk reference to a pk was found..
                 // Add validation on leaving textfield
                 colInput.focusedProperty().addListener((observableValue, aBoolean, t1) -> {
                     if (observableValue.getValue() == false) {
 
                         // Check to see if the inputted value exists in the db
-                        Validator.foreignKeyConstraintMet(colName, fkRef.getForeignKeyRefTable(), fkRef.getForeignKeyRefColumn(), (TextField) colInput);
+                        ValidationManager.foreignKeyConstraintMet(colName, fkRef.getForeignKeyRefTable(), fkRef.getForeignKeyRefColumn(), (ValidatingTextField) colInput);
                     }
                 });
             }
@@ -295,7 +295,7 @@ public class Controller {
                                 if (findDataType(colName).equals("datetime")) // getValue() grabs from date picker
                                     valueToValidate = ((DatePicker) colInput).getValue().toString();
                                 else // we can use getText() to grab from textfields
-                                    valueToValidate = ((TextField) colInput).getText();
+                                    valueToValidate = ((ValidatingTextField) colInput).getText();
 
                                 // Now, we use the custom validation
                                 try {
@@ -311,8 +311,8 @@ public class Controller {
                                     // Highlight the field
                                     colInput.requestFocus();
                                     System.out.println("Control class name: " + colInput.getClass().getName());
-                                    if (colInput.getClass().getName().equals("TextField"))
-                                        ((TextField) colInput).selectAll();
+                                    if (colInput.getClass().getName().equals("ValidatingTextField"))
+                                        ((ValidatingTextField) colInput).selectAll();
                                 }
 
                             }
@@ -373,7 +373,7 @@ public class Controller {
                         //Format as currency
                         double dataAsDecimal = Double.valueOf((data.replaceAll(",","").replaceAll("\\$","")));
                         System.out.println("Decimal: " + dataAsDecimal);
-                        ((TextField) input).setText(myFormat.format(dataAsDecimal));
+                        ((ValidatingTextField) input).setText(myFormat.format(dataAsDecimal));
                     }
                     // Else if date
                     else if(findDataType(colName).equals("datetime")){
@@ -382,7 +382,7 @@ public class Controller {
                     }
                     // If anything not needing special formatting (varchar/string, int)
                     else {
-                        ((TextField) input).setText(data);
+                        ((ValidatingTextField) input).setText(data);
                     }
                 }
 
@@ -458,8 +458,8 @@ public class Controller {
                 }
                 // Clear this field. How we do this depends on the type of input used
                 // If textfield:
-                if ((tf.getClass().getName()).equals("javafx.scene.control.TextField")){
-                    ((TextField) tf).setText("");
+                if ((tf.getClass().getName()).equals("sample.ValidatingTextField")){
+                    ((ValidatingTextField) tf).setText("");
                 }
                 // If datepicker:
                 else if ((tf.getClass().getName()).equals("javafx.scene.control.DatePicker")){
@@ -532,7 +532,7 @@ public class Controller {
                         // Decimal: Pulled from textfield, needs to be stripped of currency characters if not null
                     } else if (findDataType(columnName).equals("decimal")) {
                         // Get input from text box
-                        input = ((TextField) vboxInputs.getChildren().get(i)).getText();
+                        input = ((ValidatingTextField) vboxInputs.getChildren().get(i)).getText();
 
                         // If empty space, set value to null
                         if (input.isBlank())
@@ -545,7 +545,7 @@ public class Controller {
                         // Varchar/Int/ anything else  TODO: is there anything else?
                     } else {
                         // Get input from text box
-                        input = ((TextField) vboxInputs.getChildren().get(i)).getText();
+                        input = ((ValidatingTextField) vboxInputs.getChildren().get(i)).getText();
 
                         // If empty space, set value to null
                         if (input.isBlank())
@@ -577,7 +577,7 @@ public class Controller {
                         // Decimal: Pulled from textfield, needs to be stripped of currency characters if not null
                     } else if (findDataType(columnName).equals("decimal")) {
                         // Get input from text box
-                        input = ((TextField) vboxInputs.getChildren().get(i)).getText();
+                        input = ((ValidatingTextField) vboxInputs.getChildren().get(i)).getText();
 
                         // If empty space, set value to null
                         if (input.isBlank())
@@ -590,7 +590,7 @@ public class Controller {
                         // Varchar/Int/ anything else  TODO: is there anything else?
                     } else {
                         // Get input from text box
-                        input = ((TextField) vboxInputs.getChildren().get(i)).getText();
+                        input = ((ValidatingTextField) vboxInputs.getChildren().get(i)).getText();
 
                         // If empty space, set value to null
                         if (input.isBlank())
@@ -688,7 +688,7 @@ public class Controller {
             // Decimal: Pulled from textfield, needs to be stripped of currency characters if not null
             } else if(findDataType(columnName).equals("decimal")) {
                 // Get input from text box
-                input = ((TextField)vboxInputs.getChildren().get(i)).getText();
+                input = ((ValidatingTextField)vboxInputs.getChildren().get(i)).getText();
 
                 // If empty space, set value to null
                 if(input.isBlank())
@@ -701,7 +701,7 @@ public class Controller {
             // Varchar/Int/ anything else  TODO: is there anything else?
             } else {
                 // Get input from text box
-                 input = ((TextField)vboxInputs.getChildren().get(i)).getText();
+                 input = ((ValidatingTextField)vboxInputs.getChildren().get(i)).getText();
 
                 // If empty space, set value to null
                 if(input.isBlank())
