@@ -233,17 +233,6 @@ public class Controller {
             } else if (connection.findDataType(currentTable, colName).equals("int")) {
                 colInput = new ValidatingTextField(currentTable, colName); // add a text field
 
-
-                // Add that validator to the internal list of validators for this control
-                ((IValidates) colInput).addValidator(
-                        new CustomValidator() {
-                            @Override
-                            public boolean checkValidity(HashMap<String, String> args) throws SQLException {
-                                return ValidationManager.isPositiveInt(colName, (ValidatingTextField) colInput);
-                            }
-                        });
-
-
             // Varchar/ misc data
             // TODO: add varchar length validation here instead of elsewhere
             // TODO: Figure out if there are other data types this should be checking for
@@ -253,9 +242,23 @@ public class Controller {
             colInput.setId("input" + colName); // give it an id
                 vboxInputs.getChildren().add(colInput); // add it to other vbox
 
+            // Time to add a slew of validators to the internal list of validators for this control.
+            // These get called when the user leaves the input field, and are checked before inserting/updating
+
+            // Add validator to check for positive integers for int inputs
+            if (connection.findDataType(currentTable, colName).equals("int")) {
+                ((IValidates) colInput).addValidator(
+                        new CustomValidator() {
+                            @Override
+                            public boolean checkValidity(HashMap<String, String> args) throws SQLException {
+                                return ValidationManager.isPositiveInt(colName, (ValidatingTextField) colInput);
+                            }
+                        });
+            }
+            // todo need decimal/double validation
 
             // Add foreign key reference validation if needed (regardless of data type)
-            // Call DB inforomation schema to see if this column is a foreign key, and if so, to what
+            // Call DB information schema to see if this column is a foreign key, and if so, to what
             DbManager.ForeignKeyReference fkRef = connection.getForeignKeyReferences(currentTable, colName);
             if (colInput.getClass().getName().equals("sample.ValidatingTextField") // not going to add this to datepickers, shouldn't be fk
                && fkRef != null){ // if a fk reference to a pk was found..

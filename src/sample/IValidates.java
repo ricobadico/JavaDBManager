@@ -20,7 +20,7 @@ public interface IValidates {
     // TODO: it would be great if validators were stored backwards (stack?) or called backwards for subsequent user alerts
     ArrayList<CustomValidator> _validators = new ArrayList<CustomValidator>();
 
-
+    // TODO BUG TODO: THIS AWFUL BEAST IS SHARED AMONG ALL OBJECTS THAT IMPLEMENT THE INTERFACE! HOW CAN EACH HAVE ITS OWN?
     default ArrayList<CustomValidator> getValidators() {
         return _validators;
     }
@@ -35,6 +35,15 @@ public interface IValidates {
 
         // Grab the validation corresponding to the current column (if one exists)
         if(!_validators.isEmpty()){
+
+            // Quick lil hack! We only actually want to validate fields that are editable.
+            // Notably, an Identity PK column will have these validators attached, but in
+            // add mode will be blank and likely fail validation.
+            // Since those columns are the only disabled ones at the time of this method being called,
+            // we can bypass it here
+            if(((Control)this).isDisabled()){
+                return;
+            }
 
             // Add validation check as an on-blur listener for the input
             ((Control)this).focusedProperty().addListener((observableValue, aBoolean, t1) -> {
@@ -84,6 +93,15 @@ public interface IValidates {
 
     default boolean validate(String tableName, String columnName, String valueToValidate) {
 
+        // Quick lil hack! We only actually want to validate fields that are editable.
+        // Notably, an Identity PK column will have these validators attached, but in
+        // add mode will be blank and likely fail validation.
+        // Since those columns are the only disabled ones at the time of this method being called,
+        // we can bypass it here
+        if(((Control)this).isDisabled()){
+            return true;
+        }
+
         // Initialize variable to keep track of any invalid validation calls
         boolean allPassed = true;
 
@@ -105,17 +123,17 @@ public interface IValidates {
                 }
             } catch (SQLException e) {
                 allPassed = false;
-                Alert a = new Alert(Alert.AlertType.WARNING);
-                a.setTitle("Validation Error");
-                a.setHeaderText("Special validation error for " + args.get("colName") + ".");
-                a.setContentText(e.getMessage());
-                a.show();
-
-                // Highlight the field
-                ((Control)this).requestFocus();
-                System.out.println("Control class name: " + this.getClass().getName());
-                if (this.getClass().getName().equals("ValidatingTextField"))
-                    ((ValidatingTextField) this).selectAll();
+//                Alert a = new Alert(Alert.AlertType.WARNING);
+//                a.setTitle("Validation Error");
+//                a.setHeaderText("Special validation error for " + args.get("colName") + ".");
+//                a.setContentText(e.getMessage());
+//                a.show();
+//
+//                // Highlight the field
+//                ((Control)this).requestFocus();
+//                System.out.println("Control class name: " + this.getClass().getName());
+//                if (this.getClass().getName().equals("ValidatingTextField"))
+//                    ((ValidatingTextField) this).selectAll();
             }
         }
 
