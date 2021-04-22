@@ -18,7 +18,7 @@ public interface ITableEntity {
      * Provides custom validation to use for the given column input
      * @return Map of column name keys to ICustomValidator objects. These contain one method which takes in tablename, columnname, and value, and return true if valid.
      */
-    public static HashMap<String, ICustomValidator> GetValidators() { return null; }
+    public static HashMap<String, CustomValidator> GetValidators() { return null; }
 
     /**
      * Provides a list of record names (the label for the entire record, that goes in a dropdown) for the entire table.

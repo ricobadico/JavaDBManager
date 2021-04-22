@@ -14,7 +14,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import db.ICustomValidator;
+import db.CustomValidator;
 import db.ITableEntity;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -147,7 +147,7 @@ public class Controller {
             predefinedClassFile = null;
             System.out.println("Using programmatic defaults");
         }
-        //TODO AOOGA
+
         // Get record names for combo box
         connection = new db.DbManager();
         ArrayList<String> recordNames = null;
@@ -195,7 +195,8 @@ public class Controller {
 
             Label columnLabel = new Label(colName); // create a new label with that name
 
-            DbManager.ForeignKeyReference egg = connection.getForeignKeyReferences(currentTable, colName);
+            // TODO I'm 90% sure I wrote this line just as a test. Commented out, let's see if that breaks anything
+            // DbManager.ForeignKeyReference egg = connection.getForeignKeyReferences(currentTable, colName);
 
             // Update to use the column's display label (if defined in the class)
             if(formattedColumnLabels != null) {
@@ -213,116 +214,95 @@ public class Controller {
             Control colInput;
 
             // Datetime data: create datepicker
-            if(findDataType(colName).equals("datetime")) {
-                colInput = new DatePicker();
+            if(connection.findDataType(currentTable, colName).equals("datetime")) {
+                colInput = new ValidatingDatePicker(currentTable, colName);
             }
 
             // Decimal data: create textbox with decimal formatting and validation
-            else if (findDataType(colName).equals("decimal")) {
-                colInput = new TextField(); // add a text field
+            else if (connection.findDataType(currentTable, colName).equals("decimal")) {
+                colInput = new ValidatingTextField(currentTable, colName); // add a text field
 
                 // Add an on-blur listener that will format the input to a nice currency display
                 DecimalFormat myFormat = new DecimalFormat("$###,##0.00");
                 colInput.focusedProperty().addListener((observableValue, aBoolean, t1) -> {
                     if (observableValue.getValue() == false)
-                        FormatHelper.formatCurrency((TextField) colInput, myFormat);
+                        FormatHelper.formatCurrency((ValidatingTextField) colInput, myFormat);
                 });
 
             // Int data: create textbox and add int validation
-            } else if (findDataType(colName).equals("int")) {
-                colInput = new TextField(); // add a text field
-
-                // Add validation on leaving textfield
-                colInput.focusedProperty().addListener((observableValue, aBoolean, t1) -> {
-                    if (observableValue.getValue() == false) {
-
-                        // Run int validation
-                        Validator.isPositiveInt(colName, (TextField) colInput);
-
-                    }
-                });
+            } else if (connection.findDataType(currentTable, colName).equals("int")) {
+                colInput = new ValidatingTextField(currentTable, colName); // add a text field
 
             // Varchar/ misc data
             // TODO: add varchar length validation here instead of elsewhere
             // TODO: Figure out if there are other data types this should be checking for
             } else {
-                colInput = new TextField(); // add a text field
+                colInput = new ValidatingTextField(currentTable, colName); // add a text field
             }
             colInput.setId("input" + colName); // give it an id
                 vboxInputs.getChildren().add(colInput); // add it to other vbox
 
-            // Add foreign key reference validation if needed (regardless of data type)
-            // Call DB inforomation schema to see if this column is a foreign key, and if so, to what
-            // TODO: this should probably check only on hitting save, not on blur
-            DbManager.ForeignKeyReference fkRef = connection.getForeignKeyReferences(currentTable, colName);
-            if(colInput.getClass().getName().equals("javafx.scene.control.TextField") // not going to add this to datepickers, shouldn't be fk
-                    && fkRef != null){ // if a fk reference to a pk was found..
-                // Add validation on leaving textfield
-                colInput.focusedProperty().addListener((observableValue, aBoolean, t1) -> {
-                    if (observableValue.getValue() == false) {
+            // Time to add a slew of validators to the internal list of validators for this control.
+            // These get called when the user leaves the input field, and are checked before inserting/updating
 
-                        // Check to see if the inputted value exists in the db
-                        Validator.foreignKeyConstraintMet(colName, fkRef.getForeignKeyRefTable(), fkRef.getForeignKeyRefColumn(), (TextField) colInput);
+            // Add validator to check for positive integers for int inputs
+            if (connection.findDataType(currentTable, colName).equals("int")) {
+                ((IValidates) colInput).addValidator(
+                        new CustomValidator() {
+                            @Override
+                            public boolean checkValidity(HashMap<String, String> args) throws SQLException {
+                                return ValidationManager.isPositiveInt(colName, (ValidatingTextField) colInput);
+                            }
+                        });
+            }
+            // todo need decimal/double validation
+
+            // Add foreign key reference validation if needed (regardless of data type)
+            // Call DB information schema to see if this column is a foreign key, and if so, to what
+            DbManager.ForeignKeyReference fkRef = connection.getForeignKeyReferences(currentTable, colName);
+            if (colInput.getClass().getName().equals("sample.ValidatingTextField") // not going to add this to datepickers, shouldn't be fk
+               && fkRef != null){ // if a fk reference to a pk was found..
+
+                // Add that validator to the internal list of validators for this control
+                ((IValidates) colInput).addValidator(new CustomValidator() {
+                    @Override
+                    public boolean checkValidity(HashMap<String, String> args) throws SQLException {
+                        return ValidationManager.foreignKeyConstraintMet(colName, fkRef.getForeignKeyRefTable(),
+                                fkRef.getForeignKeyRefColumn(), (ValidatingTextField) colInput);
                     }
                 });
+
             }
-
-            // Set input to read-only (default until edit mode is entered)
-            colInput.setDisable(true);
-
 
             // If a preexisting table class exists, add custom validation if any
             if(predefinedClassFile != null){  // Check for table class
 
+                // Pull out class method that provides a map of additional validation functions (classes implementing ITableEntity are guaranteed to have this)
+                Method getValidators = null;
+                HashMap<String, CustomValidator> additionalValidators = null;
                 try {
-                    // Pull out class method that provides a map of additional validation functions (classes implementing ITableEntity are guaranteed to have this)
-                    Method getValidators = predefinedClassFile.getMethod("GetValidators");
-                    HashMap<String, ICustomValidator> additionalValidators = (HashMap<String, ICustomValidator>) getValidators.invoke(predefinedClassFile, null);
-
-                    // Grab the validation corresponding to the current column (if one exists)
-                    if(additionalValidators.containsKey(colName)) {
-
-                        // Grab that validator
-                        ICustomValidator validator = additionalValidators.get(colName);
-
-                        // Add validation check as an on-blur listener for the input
-                        colInput.focusedProperty().addListener((observableValue, aBoolean, t1) -> {
-                            if (observableValue.getValue() == false) {
-
-                                // A little messy here... we always want to pass the input's value as a string when validating,
-                                // but depending on the input given need to grab that differently
-                                String valueToValidate;
-                                if (findDataType(colName).equals("datetime")) // getValue() grabs from date picker
-                                    valueToValidate = ((DatePicker) colInput).getValue().toString();
-                                else // we can use getText() to grab from textfields
-                                    valueToValidate = ((TextField) colInput).getText();
-
-                                // Now, we use the custom validation
-                                try {
-                                    boolean isValid = validator.checkValidity(currentTable, colName, valueToValidate);
-                                // if validation fails, it throws an exception with a useful message we can capture in an alert
-                                } catch (SQLException e) {
-                                    Alert a = new Alert(Alert.AlertType.WARNING);
-                                    a.setTitle("Validation Error");
-                                    a.setHeaderText("Special validation error for " + colName + ".");
-                                    a.setContentText(e.getMessage());
-                                    a.show();
-
-                                    // Highlight the field
-                                    colInput.requestFocus();
-                                    System.out.println("Control class name: " + colInput.getClass().getName());
-                                    if (colInput.getClass().getName().equals("TextField"))
-                                        ((TextField) colInput).selectAll();
-                                }
-
-                            }
-                        });
-                    }
-
+                    getValidators = predefinedClassFile.getMethod("GetValidators");
+                    additionalValidators = (HashMap<String, CustomValidator>) getValidators.invoke(predefinedClassFile, null);
                 } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                     e.printStackTrace();
                 }
+
+                //In the event that any of those validators refer to the current column, we add it to the control
+                if(additionalValidators.containsKey(colName)) {
+
+                    // Grab that validator
+                    CustomValidator validator = additionalValidators.get(colName);
+
+                    // Add that validator to the internal list of validators (so we can run them later on clicking Save)
+                    ((IValidates) colInput).addValidator(validator);
+                }
             }
+
+            //Set all accumulated validators to trigger on leaving the control
+            ((IValidates) colInput).addOnBlurValidation(currentTable, colName);
+
+            // Set input to read-only (default until edit mode is entered)
+            colInput.setDisable(true);
 
         }
 
@@ -368,21 +348,21 @@ public class Controller {
                     // Set input based on column data type. We can find this out by looking at the control's ID, which was generated with it
                     String colName = input.getId().replace("input", "");
                     // Else if decimal
-                    if(findDataType(colName).equals("decimal")) {
+                    if(connection.findDataType(currentTable, colName).equals("decimal")) {
                         DecimalFormat myFormat = new DecimalFormat("$###,##0.00");
                         //Format as currency
                         double dataAsDecimal = Double.valueOf((data.replaceAll(",","").replaceAll("\\$","")));
                         System.out.println("Decimal: " + dataAsDecimal);
-                        ((TextField) input).setText(myFormat.format(dataAsDecimal));
+                        ((ValidatingTextField) input).setText(myFormat.format(dataAsDecimal));
                     }
                     // Else if date
-                    else if(findDataType(colName).equals("datetime")){
+                    else if(connection.findDataType(currentTable, colName).equals("datetime")){
                         LocalDate timeData = LocalDateTime.parse(data).toLocalDate(); // convert string to date
-                        ((DatePicker)input).setValue(timeData); // set it as default value for datepicker
+                        ((ValidatingDatePicker)input).setValue(timeData); // set it as default value for datepicker
                     }
                     // If anything not needing special formatting (varchar/string, int)
                     else {
-                        ((TextField) input).setText(data);
+                        ((ValidatingTextField) input).setText(data);
                     }
                 }
 
@@ -458,12 +438,12 @@ public class Controller {
                 }
                 // Clear this field. How we do this depends on the type of input used
                 // If textfield:
-                if ((tf.getClass().getName()).equals("javafx.scene.control.TextField")){
-                    ((TextField) tf).setText("");
+                if ((tf.getClass().getName()).equals("sample.ValidatingTextField")){
+                    ((ValidatingTextField) tf).setText("");
                 }
                 // If datepicker:
-                else if ((tf.getClass().getName()).equals("javafx.scene.control.DatePicker")){
-                    ((DatePicker) tf).setValue(LocalDate.now());
+                else if ((tf.getClass().getName()).equals("javafx.scene.control.ValidatingDatePicker")){
+                    ((ValidatingDatePicker) tf).setValue(LocalDate.now());
                 }
             }
             int highestPK = connection.highestPKValueForTable(currentTable, pkCol);
@@ -517,22 +497,22 @@ public class Controller {
             String columnName = ((Label) vboxLabels.getChildren().get(i)) // get the current label
                     .getId().substring(3); // and get the id (eg "lblAgentId") and remove the lbl to get the SQL column name
 
-            String input;
+            String input = null;
             if (connection.columnPrimaryKeyAutoIncrements(currentTable, pkColumnName)) {
                 System.out.println("Table PK autoincrements");
                 if (!columnName.equals(pkColumnName)) {
 
 
                     // We need to process the data a bit based on the data type in the db
-                    // Datetime: pulled from DatePicker
-                    if (findDataType(columnName).equals("datetime")) {
-                        LocalDate dateInput = ((DatePicker) vboxInputs.getChildren().get(i)).getValue();
+                    // Datetime: pulled from ValidatingDatePicker
+                    if (connection.findDataType(currentTable, columnName).equals("datetime")) {
+                        LocalDate dateInput = ((ValidatingDatePicker) vboxInputs.getChildren().get(i)).getValue();
                         input = dateInput.toString();
 
                         // Decimal: Pulled from textfield, needs to be stripped of currency characters if not null
-                    } else if (findDataType(columnName).equals("decimal")) {
+                    } else if (connection.findDataType(currentTable, columnName).equals("decimal")) {
                         // Get input from text box
-                        input = ((TextField) vboxInputs.getChildren().get(i)).getText();
+                        input = ((ValidatingTextField) vboxInputs.getChildren().get(i)).getText();
 
                         // If empty space, set value to null
                         if (input.isBlank())
@@ -545,7 +525,7 @@ public class Controller {
                         // Varchar/Int/ anything else  TODO: is there anything else?
                     } else {
                         // Get input from text box
-                        input = ((TextField) vboxInputs.getChildren().get(i)).getText();
+                        input = ((ValidatingTextField) vboxInputs.getChildren().get(i)).getText();
 
                         // If empty space, set value to null
                         if (input.isBlank())
@@ -555,9 +535,7 @@ public class Controller {
                     // Add pair to arraylist
                     textInputs.put(columnName, input);
                 }
-                else {
 
-                }
             }
             else {
                 System.out.println("Table PK does not autoincrement");
@@ -569,15 +547,15 @@ public class Controller {
                 }
                 else {
                     // We need to process the data a bit based on the data type in the db
-                    // Datetime: pulled from DatePicker
-                    if (findDataType(columnName).equals("datetime")) {
-                        LocalDate dateInput = ((DatePicker) vboxInputs.getChildren().get(i)).getValue();
+                    // Datetime: pulled from ValidatingDatePicker
+                    if (connection.findDataType(currentTable, columnName).equals("datetime")) {
+                        LocalDate dateInput = ((ValidatingDatePicker) vboxInputs.getChildren().get(i)).getValue();
                         input = dateInput.toString();
 
                         // Decimal: Pulled from textfield, needs to be stripped of currency characters if not null
-                    } else if (findDataType(columnName).equals("decimal")) {
+                    } else if (connection.findDataType(currentTable, columnName).equals("decimal")) {
                         // Get input from text box
-                        input = ((TextField) vboxInputs.getChildren().get(i)).getText();
+                        input = ((ValidatingTextField) vboxInputs.getChildren().get(i)).getText();
 
                         // If empty space, set value to null
                         if (input.isBlank())
@@ -590,7 +568,7 @@ public class Controller {
                         // Varchar/Int/ anything else  TODO: is there anything else?
                     } else {
                         // Get input from text box
-                        input = ((TextField) vboxInputs.getChildren().get(i)).getText();
+                        input = ((ValidatingTextField) vboxInputs.getChildren().get(i)).getText();
 
                         // If empty space, set value to null
                         if (input.isBlank())
@@ -601,6 +579,14 @@ public class Controller {
                     textInputs.put(columnName, input);
 
                 }
+            }
+
+            // Now that we've gotten a value for this current input, we can check validation
+            IValidates inputControl = (IValidates) vboxInputs.getChildren().get(i); // grab ref to input
+            // In the event any of the validators attached to the input fail, we leave the Update method.
+            // (the inner validate methods will take care of alerting the user)
+            if(!inputControl.validate(currentTable, columnName, input)){
+                return; //todo: more cleanup needed?
             }
         }
 
@@ -658,6 +644,16 @@ public class Controller {
      * TODO: consider concurrency
      */
     private void saveUpdates() {
+
+        // TODO CLEAN THIS UP
+//        // Check validation
+//        for(int i = 0; i < vboxInputs.getChildren().size(); i++){
+//            IValidates inputControl = (IValidates) vboxInputs.getChildren().get(i); // grab ref to input
+//            String columnName = ((Label)vboxLabels.getChildren().get(i)) // get the current label
+//                    .getId().substring(3); // and get the id (eg "lblAgentId") and remove the lbl to get the SQL column name;
+//            if(!inputControl.validate(currentTable, columnName, ))
+//        }
+
         // Create a new connection
         DbManager connection = new DbManager();
         //Get primary key column to determine primary key later
@@ -671,7 +667,7 @@ public class Controller {
         // Initialize a string array to hold all textfield inputs
         HashMap<String, String> textInputs = new HashMap<>();
 
-        // Gather the text boxes data
+        // Loop through inputs - here, we can pull data, and call validators
         for(int i = 0; i < vboxInputs.getChildren().size(); i++){
             // Get column name from labels
             String columnName = ((Label)vboxLabels.getChildren().get(i)) // get the current label
@@ -680,15 +676,15 @@ public class Controller {
             String input;
 
             // We need to process the data a bit based on the data type in the db
-            // Datetime: pulled from DatePicker
-            if(findDataType(columnName).equals("datetime")){
-                LocalDate dateInput = ((DatePicker)vboxInputs.getChildren().get(i)).getValue();
+            // Datetime: pulled from ValidatingDatePicker
+            if(connection.findDataType(currentTable, columnName).equals("datetime")){
+                LocalDate dateInput = ((ValidatingDatePicker)vboxInputs.getChildren().get(i)).getValue();
                 input = dateInput.toString();
 
             // Decimal: Pulled from textfield, needs to be stripped of currency characters if not null
-            } else if(findDataType(columnName).equals("decimal")) {
+            } else if(connection.findDataType(currentTable, columnName).equals("decimal")) {
                 // Get input from text box
-                input = ((TextField)vboxInputs.getChildren().get(i)).getText();
+                input = ((ValidatingTextField)vboxInputs.getChildren().get(i)).getText();
 
                 // If empty space, set value to null
                 if(input.isBlank())
@@ -701,7 +697,7 @@ public class Controller {
             // Varchar/Int/ anything else  TODO: is there anything else?
             } else {
                 // Get input from text box
-                 input = ((TextField)vboxInputs.getChildren().get(i)).getText();
+                 input = ((ValidatingTextField)vboxInputs.getChildren().get(i)).getText();
 
                 // If empty space, set value to null
                 if(input.isBlank())
@@ -710,6 +706,15 @@ public class Controller {
 
             // Add pair to arraylist
             textInputs.put(columnName, input);
+
+            // Check validation
+            IValidates inputControl = (IValidates) vboxInputs.getChildren().get(i); // grab ref to input
+            // In the event any of the validators attached to the input fail, we leave the Update method.
+            // (the inner validate methods will take care of alerting the user)
+            if(!inputControl.validate(currentTable, columnName, input)){
+                return; //todo: more cleanup needed?
+            }
+
         }
         //Find and store the value of the primary key for the row being editted
         int pkValue = Integer.parseInt(textInputs.get(pkColumnName));
@@ -762,15 +767,6 @@ public class Controller {
         }
     }
 
-    public String findDataType(String col) {
-        String datatype = null;
-        try {
-            datatype = (connection.getColumnDataType(currentTable, col)) // gets the full datatype (ie "varchar(10)"
-                    .split("\\(")[0]; // gets just the data type name ("varchar")
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-        return datatype;
-    }
+
 
 }

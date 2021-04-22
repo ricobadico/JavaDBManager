@@ -6,7 +6,7 @@ import javafx.scene.control.TextField;
 
 import java.sql.SQLException;
 
-public class Validator {
+public class ValidationManager {
 
     public static boolean isPositiveInt(String colName, TextField colInput) {
         // Get value
