@@ -243,22 +243,23 @@ public class DbManager {
 
                 // Now we add to the name with the other column values
                 String nextBit = res.getString(2);
-                currName += (nextBit.equals("null") ? // ternary to skip null values
+                currName += (nextBit == null || nextBit.equals("null") ? // ternary to skip null values
                         "" : ": " + nextBit);
                 // Subsequent columns will be in try blocks just in case the columnIndex doesn't exist (table with only 2 columns)
                 try{
                     nextBit = (res.getString(3));
-                    currName += (nextBit.equals("null") ?
+                    currName += (nextBit == null || nextBit.equals("null") ?
                             "" : " " + nextBit);
                 } catch (Exception e){
                     // just keep going!
                 }
                 try{
                     nextBit = (res.getString(4));
-                    currName += (nextBit.equals("null") ?
+                    currName += (nextBit == null || nextBit.equals("null") ?
                             "" : " " + nextBit);
                 } catch (Exception e){
                     // just keep going!
+                    e.printStackTrace();
                 }
 
                 // Add this big string as a name

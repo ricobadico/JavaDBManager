@@ -147,7 +147,7 @@ public class Controller {
             predefinedClassFile = null;
             System.out.println("Using programmatic defaults");
         }
-        //TODO AOOGA
+
         // Get record names for combo box
         connection = new db.DbManager();
         ArrayList<String> recordNames = null;
@@ -195,7 +195,8 @@ public class Controller {
 
             Label columnLabel = new Label(colName); // create a new label with that name
 
-            DbManager.ForeignKeyReference egg = connection.getForeignKeyReferences(currentTable, colName);
+            // TODO I'm 90% sure I wrote this line just as a test. Commented out, let's see if that breaks anything
+            // DbManager.ForeignKeyReference egg = connection.getForeignKeyReferences(currentTable, colName);
 
             // Update to use the column's display label (if defined in the class)
             if(formattedColumnLabels != null) {
@@ -232,15 +233,16 @@ public class Controller {
             } else if (connection.findDataType(currentTable, colName).equals("int")) {
                 colInput = new ValidatingTextField(currentTable, colName); // add a text field
 
-                // Add validation on leaving textfield
-                colInput.focusedProperty().addListener((observableValue, aBoolean, t1) -> {
-                    if (observableValue.getValue() == false) {
 
-                        // Run int validation
-                        ValidationManager.isPositiveInt(colName, (ValidatingTextField) colInput);
+                // Add that validator to the internal list of validators for this control
+                ((IValidates) colInput).addValidator(
+                        new CustomValidator() {
+                            @Override
+                            public boolean checkValidity(HashMap<String, String> args) throws SQLException {
+                                return ValidationManager.isPositiveInt(colName, (ValidatingTextField) colInput);
+                            }
+                        });
 
-                    }
-                });
 
             // Varchar/ misc data
             // TODO: add varchar length validation here instead of elsewhere
@@ -251,25 +253,23 @@ public class Controller {
             colInput.setId("input" + colName); // give it an id
                 vboxInputs.getChildren().add(colInput); // add it to other vbox
 
+
             // Add foreign key reference validation if needed (regardless of data type)
             // Call DB inforomation schema to see if this column is a foreign key, and if so, to what
-            // TODO: this should probably check only on hitting save, not on blur
             DbManager.ForeignKeyReference fkRef = connection.getForeignKeyReferences(currentTable, colName);
-            if(colInput.getClass().getName().equals("sample.ValidatingTextField") // not going to add this to datepickers, shouldn't be fk
-                    && fkRef != null){ // if a fk reference to a pk was found..
-                // Add validation on leaving textfield
-                colInput.focusedProperty().addListener((observableValue, aBoolean, t1) -> {
-                    if (observableValue.getValue() == false) {
+            if (colInput.getClass().getName().equals("sample.ValidatingTextField") // not going to add this to datepickers, shouldn't be fk
+               && fkRef != null){ // if a fk reference to a pk was found..
 
-                        // Check to see if the inputted value exists in the db
-                        ValidationManager.foreignKeyConstraintMet(colName, fkRef.getForeignKeyRefTable(), fkRef.getForeignKeyRefColumn(), (ValidatingTextField) colInput);
+                // Add that validator to the internal list of validators for this control
+                ((IValidates) colInput).addValidator(new CustomValidator() {
+                    @Override
+                    public boolean checkValidity(HashMap<String, String> args) throws SQLException {
+                        return ValidationManager.foreignKeyConstraintMet(colName, fkRef.getForeignKeyRefTable(),
+                                fkRef.getForeignKeyRefColumn(), (ValidatingTextField) colInput);
                     }
                 });
+
             }
-
-            // Set input to read-only (default until edit mode is entered)
-            colInput.setDisable(true);
-
 
             // If a preexisting table class exists, add custom validation if any
             if(predefinedClassFile != null){  // Check for table class
@@ -292,11 +292,14 @@ public class Controller {
 
                     // Add that validator to the internal list of validators (so we can run them later on clicking Save)
                     ((IValidates) colInput).addValidator(validator);
-
-                    //Set
-                    ((IValidates) colInput).addOnBlurValidation();
                 }
             }
+
+            //Set all accumulated validators to trigger on leaving the control
+            ((IValidates) colInput).addOnBlurValidation(currentTable, colName);
+
+            // Set input to read-only (default until edit mode is entered)
+            colInput.setDisable(true);
 
         }
 
@@ -491,7 +494,7 @@ public class Controller {
             String columnName = ((Label) vboxLabels.getChildren().get(i)) // get the current label
                     .getId().substring(3); // and get the id (eg "lblAgentId") and remove the lbl to get the SQL column name
 
-            String input;
+            String input = null;
             if (connection.columnPrimaryKeyAutoIncrements(currentTable, pkColumnName)) {
                 System.out.println("Table PK autoincrements");
                 if (!columnName.equals(pkColumnName)) {
@@ -529,9 +532,7 @@ public class Controller {
                     // Add pair to arraylist
                     textInputs.put(columnName, input);
                 }
-                else {
 
-                }
             }
             else {
                 System.out.println("Table PK does not autoincrement");
@@ -575,6 +576,14 @@ public class Controller {
                     textInputs.put(columnName, input);
 
                 }
+            }
+
+            // Now that we've gotten a value for this current input, we can check validation
+            IValidates inputControl = (IValidates) vboxInputs.getChildren().get(i); // grab ref to input
+            // In the event any of the validators attached to the input fail, we leave the Update method.
+            // (the inner validate methods will take care of alerting the user)
+            if(!inputControl.validate(currentTable, columnName, input)){
+                return; //todo: more cleanup needed?
             }
         }
 
@@ -632,6 +641,16 @@ public class Controller {
      * TODO: consider concurrency
      */
     private void saveUpdates() {
+
+        // TODO CLEAN THIS UP
+//        // Check validation
+//        for(int i = 0; i < vboxInputs.getChildren().size(); i++){
+//            IValidates inputControl = (IValidates) vboxInputs.getChildren().get(i); // grab ref to input
+//            String columnName = ((Label)vboxLabels.getChildren().get(i)) // get the current label
+//                    .getId().substring(3); // and get the id (eg "lblAgentId") and remove the lbl to get the SQL column name;
+//            if(!inputControl.validate(currentTable, columnName, ))
+//        }
+
         // Create a new connection
         DbManager connection = new DbManager();
         //Get primary key column to determine primary key later
@@ -645,7 +664,7 @@ public class Controller {
         // Initialize a string array to hold all textfield inputs
         HashMap<String, String> textInputs = new HashMap<>();
 
-        // Gather the text boxes data
+        // Loop through inputs - here, we can pull data, and call validators
         for(int i = 0; i < vboxInputs.getChildren().size(); i++){
             // Get column name from labels
             String columnName = ((Label)vboxLabels.getChildren().get(i)) // get the current label
@@ -684,6 +703,15 @@ public class Controller {
 
             // Add pair to arraylist
             textInputs.put(columnName, input);
+
+            // Check validation
+            IValidates inputControl = (IValidates) vboxInputs.getChildren().get(i); // grab ref to input
+            // In the event any of the validators attached to the input fail, we leave the Update method.
+            // (the inner validate methods will take care of alerting the user)
+            if(!inputControl.validate(currentTable, columnName, input)){
+                return; //todo: more cleanup needed?
+            }
+
         }
         //Find and store the value of the primary key for the row being editted
         int pkValue = Integer.parseInt(textInputs.get(pkColumnName));

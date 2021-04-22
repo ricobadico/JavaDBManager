@@ -6,8 +6,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Control;
 import javafx.scene.control.DatePicker;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,11 +17,9 @@ import java.util.HashMap;
  */
 public interface IValidates {
 
+    // TODO: it would be great if validators were stored backwards (stack?) or called backwards for subsequent user alerts
     ArrayList<CustomValidator> _validators = new ArrayList<CustomValidator>();
 
-    // Properties this interface cares about - since interfaces can't have constructors, we need to call the setters
-    String currentTable = null;
-    String columnName = null;
 
     default ArrayList<CustomValidator> getValidators() {
         return _validators;
@@ -32,7 +29,7 @@ public interface IValidates {
         _validators.add(validator);
     }
 
-    default void addOnBlurValidation(){
+    default void addOnBlurValidation(String tableName, String columnName){
 
         DbManager connection = new DbManager();
 
@@ -46,7 +43,7 @@ public interface IValidates {
                     // A little messy here... we always want to pass the input's value as a string when validating,
                     // but depending on the input given need to grab that differently
                     String valueToValidate;
-                    if (connection.findDataType(currentTable, columnName).equals("datetime")) // getValue() grabs from date picker
+                    if (connection.findDataType(tableName, columnName).equals("datetime")) // getValue() grabs from date picker
                         valueToValidate = ((DatePicker) this).getValue().toString();
                     else // we can use getText() to grab from textfields
                         valueToValidate = ((ValidatingTextField) this).getText();
@@ -55,7 +52,7 @@ public interface IValidates {
 
                     // Gather up args needed for validation
                     HashMap<String, String> args = new HashMap<String, String>() {{
-                        put("tableName", currentTable);
+                        put("tableName", tableName);
                         put("columnName", columnName);
                         put("value", valueToValidate);
                     }};
@@ -85,14 +82,14 @@ public interface IValidates {
     }
 
 
-    default boolean validate(String valueToValidate) {
+    default boolean validate(String tableName, String columnName, String valueToValidate) {
 
         // Initialize variable to keep track of any invalid validation calls
         boolean allPassed = true;
 
         // Gather up args needed for validation
         HashMap<String, String> args = new HashMap<String, String>() {{
-            put("tableName", currentTable);
+            put("tableName", tableName);
             put("columnName", columnName);
             put("value", (valueToValidate));
         }};

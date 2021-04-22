@@ -67,6 +67,7 @@ public class Agents implements ITableEntity {
          * New validation methods go here: they should return true or throw an exception to be caught
          */
         //TODO: fix template! should take HashMap<String,String> args, which should include those three values
+        // also needs to be a customvalidator object, with validate() function defined
 
         // Validator for AgencyID: checks to ensure foreign key constraints met (AgencyID exists in other column)
 //        columnValidators.put("AgencyId", (tableName, columnName, value) -> {
