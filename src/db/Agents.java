@@ -64,21 +64,25 @@ public class Agents implements ITableEntity {
 
 
         /**
-         * New validation methods go here: they should return true or throw an exception to be caught
+         * New validation methods go here. The structure is as follows:
+         * Put a new entry into the hashmap. The key is the sql column nam (eg. "AgencyID"),
+         * the value is a new Custom Validator object that overwrites the checkValidity method
+         * to be whatever validation you want to add. The validation should return true or throw an exception to be caught.
          */
-        //TODO: fix template! should take HashMap<String,String> args, which should include those three values
-        // also needs to be a customvalidator object, with validate() function defined
 
         // Validator for AgencyID: checks to ensure foreign key constraints met (AgencyID exists in other column)
-//        columnValidators.put("AgencyId", (tableName, columnName, value) -> {
-//
-//            DbManager db = new DbManager();
-//            boolean isValid = db.columnIntValueExists("Agencies", "AgencyId", Integer.parseInt(value));
-//            if(isValid == false) {
-//                throw new SQLException("The provided agency ID does not exist in the database");
+//        columnValidators.put("AgencyId", new CustomValidator() {
+//            @Override
+//            public boolean checkValidity(HashMap<String, String> args) throws SQLException {
+//                DbManager db = new DbManager();
+//                boolean isValid = db.columnIntValueExists("Agencies", "AgencyId", Integer.parseInt(args.get("value")));
+//                if(isValid == false) {
+//                    throw new SQLException("The provided agency ID does not exist in the database");
+//                }
+//                return true;
 //            }
-//            return true;
 //        });
+
 
         /**
          * More validators for columns in this table can go here
@@ -105,7 +109,7 @@ public class Agents implements ITableEntity {
 
             // Build up the string using values from the record
             // To do this, refer to the column index numbers in the database
-            // TODO: Right now, the first part of the label MUST be the Id# followed by a ":". We may change this later?
+            // TODO: Right now, the first part of the label MUST be the Id# followed by a ":". We may change this later, but it isn't an awful convention.
             /**
              *  Other than the table name above, this block is the only thing in this method that can't be copied and pasted from class to class
              */

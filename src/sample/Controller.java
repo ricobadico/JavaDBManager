@@ -120,8 +120,23 @@ public class Controller {
     private void populateRecordCBOnly() {
         // Get record names for combo box
         connection = new db.DbManager(); // create manager class (establishes connection)
-        ArrayList<String> recordNames = connection.getRecordNames(currentTable); // call method to get descriptive names for each record
-        ObservableList cbxContents = FXCollections.observableList(recordNames); // convert to observable list
+        ArrayList<String> recordNames = null;
+        ObservableList cbxContents;
+        // If a class has been predefined, it will have its own custom record names
+        if(predefinedClassFile != null) {
+            try {
+                // call method to get descriptive names for each record
+                Method getRecordNames = predefinedClassFile.getMethod("GetRecordNames");
+                recordNames = (ArrayList<String>) getRecordNames.invoke(predefinedClassFile, null);
+
+            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                e.printStackTrace();
+            }
+            // Otherwise, create defaults record names
+        } else{
+            recordNames = connection.getRecordNames(currentTable); // call method to get descriptive names for each record
+        }
+        cbxContents = FXCollections.observableList(recordNames); // convert to observable list
         cbxRecordList.setItems(cbxContents); // add list to combo box
     }
 
@@ -195,9 +210,6 @@ public class Controller {
 
             Label columnLabel = new Label(colName); // create a new label with that name
 
-            // TODO I'm 90% sure I wrote this line just as a test. Commented out, let's see if that breaks anything
-            // DbManager.ForeignKeyReference egg = connection.getForeignKeyReferences(currentTable, colName);
-
             // Update to use the column's display label (if defined in the class)
             if(formattedColumnLabels != null) {
                 // Find the formatted label associated with the actual db column name (in colName variable)
@@ -234,7 +246,7 @@ public class Controller {
                 colInput = new ValidatingTextField(currentTable, colName); // add a text field
 
             // Varchar/ misc data
-            // TODO: add varchar length validation here instead of elsewhere
+            // TODO: Not neccessary, but could add varchar length validation here instead of in DbManager
             // TODO: Figure out if there are other data types this should be checking for
             } else {
                 colInput = new ValidatingTextField(currentTable, colName); // add a text field
@@ -321,7 +333,6 @@ public class Controller {
      * Uses a new selection from the Records combo box to update the application:
      * - Current data for each field in the record are displayed in corresponding text boxes.
      * - The Edit button is enabled for editing.
-     * TODO: add overload method that takes agentId as a param
      */
     private void populateRecordSelection(int chosenID) {
 
@@ -463,7 +474,6 @@ public class Controller {
             a.setContentText(e.getMessage());
             a.show();
         }
-        //TODO: clear record in Records textbox, disable both text boxes, add cancel button
 
     }
 
@@ -522,7 +532,7 @@ public class Controller {
                             input = ((input.replaceAll(",", "")).replaceAll("\\$", ""));
                             System.out.println("DECIMAL: " + input);
                         }
-                        // Varchar/Int/ anything else  TODO: is there anything else?
+                        // Varchar/Int/ anything else
                     } else {
                         // Get input from text box
                         input = ((ValidatingTextField) vboxInputs.getChildren().get(i)).getText();
@@ -565,7 +575,7 @@ public class Controller {
                             input = ((input.replaceAll(",", "")).replaceAll("\\$", ""));
                             System.out.println("DECIMAL: " + input);
                         }
-                        // Varchar/Int/ anything else  TODO: is there anything else?
+                        // Varchar/Int/ anything else
                     } else {
                         // Get input from text box
                         input = ((ValidatingTextField) vboxInputs.getChildren().get(i)).getText();
@@ -586,7 +596,7 @@ public class Controller {
             // In the event any of the validators attached to the input fail, we leave the Update method.
             // (the inner validate methods will take care of alerting the user)
             if(!inputControl.validate(currentTable, columnName, input)){
-                return; //todo: more cleanup needed?
+                return;
             }
         }
 
@@ -641,18 +651,9 @@ public class Controller {
 
     /**
      * Updates the current record using the input fields
-     * TODO: consider concurrency
+     * TODO: We could consider concurrency
      */
     private void saveUpdates() {
-
-        // TODO CLEAN THIS UP
-//        // Check validation
-//        for(int i = 0; i < vboxInputs.getChildren().size(); i++){
-//            IValidates inputControl = (IValidates) vboxInputs.getChildren().get(i); // grab ref to input
-//            String columnName = ((Label)vboxLabels.getChildren().get(i)) // get the current label
-//                    .getId().substring(3); // and get the id (eg "lblAgentId") and remove the lbl to get the SQL column name;
-//            if(!inputControl.validate(currentTable, columnName, ))
-//        }
 
         // Create a new connection
         DbManager connection = new DbManager();
@@ -694,7 +695,7 @@ public class Controller {
                     input = ((input.replaceAll(",", "")).replaceAll("\\$", ""));
                     System.out.println("DECIMAL: " + input);
                 }
-            // Varchar/Int/ anything else  TODO: is there anything else?
+            // Varchar/Int/ anything else
             } else {
                 // Get input from text box
                  input = ((ValidatingTextField)vboxInputs.getChildren().get(i)).getText();
@@ -712,7 +713,7 @@ public class Controller {
             // In the event any of the validators attached to the input fail, we leave the Update method.
             // (the inner validate methods will take care of alerting the user)
             if(!inputControl.validate(currentTable, columnName, input)){
-                return; //todo: more cleanup needed?
+                return;
             }
 
         }
@@ -752,7 +753,7 @@ public class Controller {
                     cbLabelIndexPos = i;
                 }
             }
-            //Populate the record combo box //TODO: have this update with the custom record names if a predifined class is used
+            //Populate the record combo box
             populateRecordCBOnly();
             //Select the record that was edited
             cbxRecordList.getSelectionModel().select(cbLabelIndexPos);
