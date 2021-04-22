@@ -20,7 +20,7 @@ public interface IValidates {
     // TODO: it would be great if validators were stored backwards (stack?) or called backwards for subsequent user alerts
     ArrayList<CustomValidator> _validators = new ArrayList<CustomValidator>();
 
-    // TODO BUG TODO: THIS AWFUL BEAST IS SHARED AMONG ALL OBJECTS THAT IMPLEMENT THE INTERFACE! HOW CAN EACH HAVE ITS OWN?
+    // TODO BUG TODO: (Eric's on it )THIS AWFUL BEAST IS SHARED AMONG ALL OBJECTS THAT IMPLEMENT THE INTERFACE! HOW CAN EACH HAVE ITS OWN?
     default ArrayList<CustomValidator> getValidators() {
         return _validators;
     }

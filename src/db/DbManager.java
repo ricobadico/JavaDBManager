@@ -12,13 +12,6 @@ import static java.lang.Integer.parseInt;
 
 public class DbManager {
 
-    // TODO: Set up code that in general, whenever it makes a check based on the current table,
-    //  it looks for an existing class corresponding to that table, so that custom formatting/ validation can be written.
-    //  When none exists, then do all this default-calculation stuff I've written
-
-    // TODO: Format incoming values based on column datatype
-    // TODO: Format column labels (to do this without knowing the input... maybe split at capital letters?)
-
     final String DB_NAME = "travelexperts";
 
     // Members
@@ -236,7 +229,6 @@ public class DbManager {
             ResultSet res = getRecords(tableName);
 
             // Create a descriptive string for each record
-            // TODO: this will have to be modular
             while(res.next()){
                 // String together the first few columns. This is definitely imperfect as is!
                 String currName = res.getString(1);
@@ -319,7 +311,6 @@ public class DbManager {
                 String inputValue = recordData.get(colName);
 
                 // For now we just need the data type name, not the length.
-                // TODO: use length for validation
                 String[] dataTypebits =  dbColumnDataType.split("\\("); // this breaks up eg "decimal(19,4)" after the datatype name
                 String datatype = dataTypebits[0]; // the name of the datatype
                 String lengthData; //used below to validate length
@@ -418,7 +409,6 @@ public class DbManager {
                 String inputValue = recordData.get(colName);
                 System.out.println(dbColumnDataType + inputValue);
                 // For now we just need the data type name, not the length.
-                // TODO: use length for validation
                 String[] dataTypebits =  dbColumnDataType.split("\\("); // this breaks up eg "decimal(19,4)" after the datatype name
                 String datatype = dataTypebits[0]; // the name of the datatype
                 String lengthData; //used below to validate length
