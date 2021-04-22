@@ -215,7 +215,7 @@ public class Controller {
 
             // Datetime data: create datepicker
             if(connection.findDataType(currentTable, colName).equals("datetime")) {
-                colInput = new DatePicker();
+                colInput = new ValidatingDatePicker(currentTable, colName);
             }
 
             // Decimal data: create textbox with decimal formatting and validation
@@ -358,7 +358,7 @@ public class Controller {
                     // Else if date
                     else if(connection.findDataType(currentTable, colName).equals("datetime")){
                         LocalDate timeData = LocalDateTime.parse(data).toLocalDate(); // convert string to date
-                        ((DatePicker)input).setValue(timeData); // set it as default value for datepicker
+                        ((ValidatingDatePicker)input).setValue(timeData); // set it as default value for datepicker
                     }
                     // If anything not needing special formatting (varchar/string, int)
                     else {
@@ -442,8 +442,8 @@ public class Controller {
                     ((ValidatingTextField) tf).setText("");
                 }
                 // If datepicker:
-                else if ((tf.getClass().getName()).equals("javafx.scene.control.DatePicker")){
-                    ((DatePicker) tf).setValue(LocalDate.now());
+                else if ((tf.getClass().getName()).equals("javafx.scene.control.ValidatingDatePicker")){
+                    ((ValidatingDatePicker) tf).setValue(LocalDate.now());
                 }
             }
             int highestPK = connection.highestPKValueForTable(currentTable, pkCol);
@@ -504,9 +504,9 @@ public class Controller {
 
 
                     // We need to process the data a bit based on the data type in the db
-                    // Datetime: pulled from DatePicker
+                    // Datetime: pulled from ValidatingDatePicker
                     if (connection.findDataType(currentTable, columnName).equals("datetime")) {
-                        LocalDate dateInput = ((DatePicker) vboxInputs.getChildren().get(i)).getValue();
+                        LocalDate dateInput = ((ValidatingDatePicker) vboxInputs.getChildren().get(i)).getValue();
                         input = dateInput.toString();
 
                         // Decimal: Pulled from textfield, needs to be stripped of currency characters if not null
@@ -547,9 +547,9 @@ public class Controller {
                 }
                 else {
                     // We need to process the data a bit based on the data type in the db
-                    // Datetime: pulled from DatePicker
+                    // Datetime: pulled from ValidatingDatePicker
                     if (connection.findDataType(currentTable, columnName).equals("datetime")) {
-                        LocalDate dateInput = ((DatePicker) vboxInputs.getChildren().get(i)).getValue();
+                        LocalDate dateInput = ((ValidatingDatePicker) vboxInputs.getChildren().get(i)).getValue();
                         input = dateInput.toString();
 
                         // Decimal: Pulled from textfield, needs to be stripped of currency characters if not null
@@ -676,9 +676,9 @@ public class Controller {
             String input;
 
             // We need to process the data a bit based on the data type in the db
-            // Datetime: pulled from DatePicker
+            // Datetime: pulled from ValidatingDatePicker
             if(connection.findDataType(currentTable, columnName).equals("datetime")){
-                LocalDate dateInput = ((DatePicker)vboxInputs.getChildren().get(i)).getValue();
+                LocalDate dateInput = ((ValidatingDatePicker)vboxInputs.getChildren().get(i)).getValue();
                 input = dateInput.toString();
 
             // Decimal: Pulled from textfield, needs to be stripped of currency characters if not null
