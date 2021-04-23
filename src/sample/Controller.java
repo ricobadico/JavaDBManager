@@ -515,9 +515,12 @@ public class Controller {
 
                     // We need to process the data a bit based on the data type in the db
                     // Datetime: pulled from ValidatingDatePicker
-                    if (connection.findDataType(currentTable, columnName).equals("datetime")) {
+                    if (connection.findDataType(currentTable, columnName).equals("datetime")){
                         LocalDate dateInput = ((ValidatingDatePicker) vboxInputs.getChildren().get(i)).getValue();
-                        input = dateInput.toString();
+                            if(dateInput != null) {
+                                input = dateInput.toString();
+                            }
+                            else input = null;
 
                         // Decimal: Pulled from textfield, needs to be stripped of currency characters if not null
                     } else if (connection.findDataType(currentTable, columnName).equals("decimal")) {

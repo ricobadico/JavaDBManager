@@ -251,7 +251,6 @@ public class DbManager {
                             "" : " " + nextBit);
                 } catch (Exception e){
                     // just keep going!
-                    e.printStackTrace();
                 }
 
                 // Add this big string as a name
@@ -415,40 +414,40 @@ public class DbManager {
 
                 // With the data type, we can determine what parsing action needs to be done to set the param for this column
                 // This is not exhaustive but should work for our purposes
-
-                switch (datatype){
-                    case "int":
-                        if(inputValue != null) {
+                // If null, we can just set to null
+                if(inputValue == null){
+                    statement.setString(i, null);
+                }
+                else {
+                    // Otherwise we set value based on data type
+                    switch (datatype) {
+                        case "int":
                             int value = parseInt(inputValue);
-                            statement.setInt(i, value);
                             break;
-                        }
 
-                    case "decimal":
-                        if(inputValue != null) {
+                        case "decimal":
                             statement.setBigDecimal(i, new BigDecimal(inputValue));
                             break;
-                        }
 
-                    case "datetime":
-                        if(inputValue != null) {
+                        case "datetime":
                             statement.setDate(i, Date.valueOf(LocalDate.parse(inputValue)));
                             break;
-                        }
 
-                    case "varchar":
+                        case "varchar":
 
-                        // Validate length
-                        lengthData=  dataTypebits[1].split("\\)")[0];
-                        int maxLength = parseInt(lengthData);
-                        if(inputValue != null && inputValue.length() > maxLength){
-                            throw new SQLException(colName +  " exceeds the max number of characters");
-                        }
+                            // Validate length
+                            lengthData = dataTypebits[1].split("\\)")[0];
+                            int maxLength = parseInt(lengthData);
+                            if (inputValue != null && inputValue.length() > maxLength) {
+                                throw new SQLException(colName + " exceeds the max number of characters");
+                            }
 
-                        statement.setString(i, inputValue);
+                            statement.setString(i, inputValue);
+                            break;
 
-                    default: // notably for "varchar"
-                        statement.setString(i, inputValue);
+                        default: // notably for "varchar"
+                            statement.setString(i, inputValue);
+                    }
                 }
 
                 i++; // add to the counter before we go to the next column of data

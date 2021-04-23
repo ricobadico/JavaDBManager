@@ -1,5 +1,8 @@
 package sample;
+import db.CustomValidator;
 import javafx.scene.control.*;
+
+import java.util.ArrayList;
 
 /**
  * Wrapper for javaFX TextFieldl exactly the same but implements
@@ -12,9 +15,15 @@ public class ValidatingTextField extends TextField implements IValidates{
     String tableName;
     String columnName;
 
+    ArrayList<CustomValidator> _validators;
+
     public ValidatingTextField(String tableName, String columnName) {
         super();
         this.tableName = tableName;
         this.columnName = columnName;
+        this._validators = new ArrayList<CustomValidator>();
     }
+
+
+
 }

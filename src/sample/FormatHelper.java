@@ -10,6 +10,7 @@ import java.text.ParsePosition;
 
 public class FormatHelper {
 
+    //
     public static void  formatCurrency (TextField colInput, DecimalFormat myFormat) {
 
         // Remove extra characters from formatted input string to get at the actual value (if any exist)

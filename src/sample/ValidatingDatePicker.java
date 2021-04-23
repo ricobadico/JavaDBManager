@@ -1,6 +1,9 @@
 package sample;
 
+import db.CustomValidator;
 import javafx.scene.control.*;
+
+import java.util.ArrayList;
 
 /**
  * Wrapper for javaFX TextField exactly the same but implements
@@ -12,6 +15,7 @@ public class ValidatingDatePicker extends DatePicker implements IValidates{
     // Extra fields this keeps track of
     String tableName;
     String columnName;
+    ArrayList<CustomValidator> _validators = new ArrayList<CustomValidator>();
 
     public ValidatingDatePicker(String tableName, String columnName) {
         super();

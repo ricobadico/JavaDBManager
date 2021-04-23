@@ -18,15 +18,23 @@ import java.util.HashMap;
 public interface IValidates {
 
     // TODO: it would be great if validators were stored backwards (stack?) or called backwards for subsequent user alerts
-    ArrayList<CustomValidator> _validators = new ArrayList<CustomValidator>();
+
 
     // TODO BUG TODO: (Eric's on it )THIS AWFUL BEAST IS SHARED AMONG ALL OBJECTS THAT IMPLEMENT THE INTERFACE! HOW CAN EACH HAVE ITS OWN?
     default ArrayList<CustomValidator> getValidators() {
-        return _validators;
+        if(this.getClass().getName().equals("sample.ValidatingTextField")){
+            return ((ValidatingTextField)this)._validators;
+        }
+        else if(this.getClass().getName().equals("sample.ValidatingDatePicker")){
+            return ((ValidatingDatePicker)this)._validators;
+        }
+        else{
+            return null;
+        }
     }
 
     default void addValidator(CustomValidator validator){
-        _validators.add(validator);
+        getValidators().add(validator);
     }
 
     default void addOnBlurValidation(String tableName, String columnName){
@@ -34,7 +42,7 @@ public interface IValidates {
         DbManager connection = new DbManager();
 
         // Grab the validation corresponding to the current column (if one exists)
-        if(!_validators.isEmpty()){
+        if(!getValidators().isEmpty()){
 
             // Quick lil hack! We only actually want to validate fields that are editable.
             // Notably, an Identity PK column will have these validators attached, but in
@@ -67,7 +75,7 @@ public interface IValidates {
                     }};
 
                     // Run all validation
-                    for (CustomValidator vldtr : _validators) {
+                    for (CustomValidator vldtr : getValidators()) {
                         try {
                             boolean isValid = vldtr.checkValidity(args);
                             // if validation fails, it throws an exception with a useful message we can capture in an alert
@@ -113,7 +121,7 @@ public interface IValidates {
         }};
 
         // Iterate through validators
-        for (CustomValidator vldtr: _validators) {
+        for (CustomValidator vldtr: getValidators()) {
             // If any validation method fails, allPassed fails.
             try {
 
