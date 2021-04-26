@@ -72,7 +72,9 @@ public class Controller {
 
         // Get table names for table combo box
         // These are currently going to be hard-coded to a few options, but all the subsequent methods are set to to take anything
-        ArrayList<String> tableNames = new ArrayList<String>(Arrays.asList("Agents", "Customers", "Packages", "Suppliers", "Bookings", "Agencies"));
+        DbManager connection = new DbManager();
+        ArrayList<String> tableNames = connection.getAllTableNames();
+
         ObservableList tableNamesContents = FXCollections.observableList(tableNames); // add list to combo box
         cbxTableList.setItems(tableNamesContents);
 

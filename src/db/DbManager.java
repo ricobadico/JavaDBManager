@@ -33,6 +33,29 @@ public class DbManager {
     // Methods
 
     /**
+     * Gets a list of all tables from the db.
+     * @return ArrayList<String>of table names as written in the db
+     */
+    public ArrayList<String> getAllTableNames(){
+        ArrayList<String> tableNames = new ArrayList<>();
+        String query = "SHOW tables";
+        try {
+            Statement statement = connection.createStatement();
+            ResultSet res = statement.executeQuery(query);
+
+            while(res.next()){
+                String nextname = (res.getString(1)); // get next table name
+                tableNames.add(nextname.substring(0, 1).toUpperCase() + nextname.substring(1)); // capitalize first letter
+            }
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+
+        }
+            return tableNames;
+    }
+
+    /**
      * Grabs all record data from a given table, using the DbManager's connection.
      *
      * @param tableName Chosen table to grab from
