@@ -5,24 +5,19 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class Customers implements ITableEntity {
+public class Packages implements ITableEntity{
 
     public static HashMap<String, String> GetColumnLabels() {
 
         HashMap<String, String> columnLabels = new HashMap<>();
 
-        columnLabels.put("CustomerId", "ID Number:");
-        columnLabels.put("CustFirstName", "First Name:");
-        columnLabels.put("CustLastName", "Last Name:");
-        columnLabels.put("CustAddress", "Address:");
-        columnLabels.put("CustCity", "City:");
-        columnLabels.put("CustProv", "Province:");
-        columnLabels.put("CustPostal", "Postal:");
-        columnLabels.put("CustCountry", "Country:");
-        columnLabels.put("CustHomePhone", "Home Phone #:");
-        columnLabels.put("CustBusPhone", "Business Phone:");
-        columnLabels.put("CustEmail", "Email:");
-        columnLabels.put("AgentId", "Agent ID:");
+        columnLabels.put("PackageId", "ID Number:");
+        columnLabels.put("PkgName", "Name:");
+        columnLabels.put("PkgStartDate", "Start Date:");
+        columnLabels.put("PkgEndDate", "End Date:");
+        columnLabels.put("PkgDesc", "Description:");
+        columnLabels.put("PkgBasePrice", "Base Price:");
+        columnLabels.put("PkgAgencyCommission", "Agency Commission:");
 
         return columnLabels;
     }
@@ -69,7 +64,7 @@ public class Customers implements ITableEntity {
 
         // Get all records from a table
         DbManager db = new DbManager();
-        ResultSet res = db.getRecords("customers"); /** Be sure to change the table name here if copying this to another class*/
+        ResultSet res = db.getRecords("packages"); /** Be sure to change the table name here if copying this to another class*/
 
         // For each record..
         while(res.next()){
@@ -83,9 +78,8 @@ public class Customers implements ITableEntity {
             /**
              *  Other than the table name above, this block is the only thing in this method that can't be copied and pasted from class to class
              */
-            recordname  += res.getString(1) + ": "; // AgentId
-            recordname  += res.getString(2) // AgentFirstName
-                    + " " + res.getString(3); // AgentLastName
+            recordname  += res.getString(1) + ": "; // PackageId
+            recordname  += res.getString(2); // PackageName
 
             // Once the string is built, add it to the array
             recordNames.add(recordname);
