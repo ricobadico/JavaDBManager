@@ -230,6 +230,7 @@ public class Controller {
             // Datetime data: create datepicker
             if(connection.findDataType(currentTable, colName).equals("datetime")) {
                 colInput = new ValidatingDatePicker(currentTable, colName);
+                colInput.setMinWidth(250); // sets width of datepicker to match textinput length
             }
 
             // Decimal data: create textbox with decimal formatting and validation
