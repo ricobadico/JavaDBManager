@@ -75,8 +75,7 @@ public class Controller {
         DbManager connection = new DbManager();
         ArrayList<String> tableNames = connection.getAllTableNames();
         // All tables that have predefined classes written (that define special formatting and validation) get pushed to the top and starred
-        highlightPredefinedClasses(tableNames);
-        ObservableList tableNamesContents = FXCollections.observableList(tableNames); // add list to combo box
+        ObservableList tableNamesContents = FXCollections.observableList(highlightPredefinedClasses(tableNames)); // add list to combo box
         cbxTableList.setItems(tableNamesContents);
 
         // Set listener for Table combo box
@@ -779,10 +778,10 @@ public class Controller {
      * with predefined class files are on top with an asterisk.
      * @param tableNames ArrayList of table name strings
      */
-    private void highlightPredefinedClasses(ArrayList<String> tableNames) {
-        // We do a weird backwards loop of all table names
-        // (this lets us push elements to the top of the list and retain proper order)
-        for (int i = tableNames.size()-1; i >= 0; i--){
+    //TODO: it is vaguely magic that this works
+    private ArrayList<String> highlightPredefinedClasses(ArrayList<String> tableNames) {
+        ArrayList<String> topTables = new ArrayList<>();
+        for (int i = 0; i < tableNames.size(); i++){
             String tableName = tableNames.get(i);
             // Check to see if a class exists with the selected item.
             //  If so, we want to use it instead of the default-choosing code
@@ -798,9 +797,12 @@ public class Controller {
             if(checkForTableClass != null) {
                 tableName = "*" + tableName;
                 tableNames.remove(i);
-                tableNames.add(0, tableName);
+                topTables.add(topTables.size(), tableName);
             }
         }
+        // Once done, we add the top classes to the top of the original list
+        topTables.addAll(tableNames);
+        return topTables;
     }
 
 }
