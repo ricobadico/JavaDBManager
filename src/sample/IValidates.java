@@ -20,9 +20,13 @@ public interface IValidates {
     // TODO: it would be great if validators were stored backwards (stack?) or called backwards for subsequent user alerts
 
 
-    ArrayList<CustomValidator> getValidators();
+    ArrayList<CustomValidator> getValidators(); // gets list of validators from implementing class
 
-    String getInputAsString();
+    String getInputAsString(); // gets input string from validating class
+
+    boolean checkIfFirstBlur(); // boolean that tracks whether onBlur has fired (to prevent recursion)
+
+    void setFirstBlur(boolean val);
 
     default void addValidator(CustomValidator validator){
         getValidators().add(validator);
@@ -46,7 +50,9 @@ public interface IValidates {
 
             // Add validation check as an on-blur listener for the input
             ((Control)this).focusedProperty().addListener((observableValue, aBoolean, t1) -> {
-                if (observableValue.getValue() == false) {
+                if (observableValue.getValue() == false && this.checkIfFirstBlur() == true) {
+
+                    this.setFirstBlur(false);
 
                     // A little messy here... we always want to pass the input's value as a string when validating,
                     // but depending on the input given need to grab that differently
@@ -71,13 +77,15 @@ public interface IValidates {
                             a.setTitle("Validation Error");
                             a.setHeaderText("Special validation error for " + columnName + ".");
                             a.setContentText(e.getMessage());
-                            a.show();
+                            a.showAndWait();
 
                             // Highlight the field
                             ((Control) this).requestFocus();
                             System.out.println("Control class name: " + this.getClass().getName());
                             if (this.getClass().getName().equals("ValidatingTextField"))
                                 ((ValidatingTextField) this).selectAll();
+
+                            setFirstBlur(true);
                         }
                     }
                 }
@@ -122,7 +130,7 @@ public interface IValidates {
                 a.setTitle("Validation Error");
                 a.setHeaderText("Special validation error for " + columnName + ".");
                 a.setContentText(e.getMessage());
-                a.show();
+                a.showAndWait();
 
                 // Highlight the field
                 ((Control)this).requestFocus();

@@ -15,6 +15,7 @@ public class ValidatingTextField extends TextField implements IValidates{
     // Extra fields this keeps track of
     String tableName;
     String columnName;
+    boolean blurOnceCheck = true; // variable that tracks if onBlur validation currently firing (to prevent recursion)
 
     ArrayList<CustomValidator> _validators;
 
@@ -37,6 +38,17 @@ public class ValidatingTextField extends TextField implements IValidates{
     public String getInputAsString() {
         return this.getText();
     }
+
+    @Override
+    public boolean checkIfFirstBlur() {
+        return blurOnceCheck;
+    }
+
+    @Override
+    public void setFirstBlur(boolean val) {
+        this.blurOnceCheck = val;
+    }
+
 
 
 }

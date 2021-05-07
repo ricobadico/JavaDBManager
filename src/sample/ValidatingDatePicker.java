@@ -17,6 +17,7 @@ public class ValidatingDatePicker extends DatePicker implements IValidates{
     String tableName;
     String columnName;
     ArrayList<CustomValidator> _validators = new ArrayList<CustomValidator>();
+    boolean blurOnceCheck = true; // variable that tracks if onBlur validation currently firing (to prevent recursion)
 
     public ValidatingDatePicker(String tableName, String columnName) {
         super();
@@ -36,5 +37,15 @@ public class ValidatingDatePicker extends DatePicker implements IValidates{
     @Override
     public String getInputAsString() {
         return this.getValue().toString();
+    }
+
+    @Override
+    public boolean checkIfFirstBlur() {
+        return blurOnceCheck;
+    }
+
+    @Override
+    public void setFirstBlur(boolean val) {
+        this.blurOnceCheck = val;
     }
 }

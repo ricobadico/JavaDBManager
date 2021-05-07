@@ -16,9 +16,14 @@ public class ValidationManager {
         // Attempt to parse as an int
 
         try {
-            Integer.parseInt(value);
+            int val = Integer.parseInt(value);
 
-            //todo validate positive, throw a different message and return false if fails
+            if (val < 0) {
+                Alert a = new Alert(Alert.AlertType.CONFIRMATION);
+                a.setTitle("Negative Value");
+                a.setHeaderText("You have provided a negative number for " + colName + ". Please confirm this is correct");
+                a.showAndWait();
+            }
 
             return true;
 
@@ -28,7 +33,7 @@ public class ValidationManager {
             a.setTitle("Validation Error");
             a.setHeaderText("Please provide a number for " + colName + ".");
             a.setContentText(e.getMessage());
-            a.show();
+            a.showAndWait();
 
             // Highlight the field
             colInput.requestFocus();
@@ -52,13 +57,13 @@ public class ValidationManager {
         try {
             constraintMet = connection.columnStringValueExists(foreignKeyTable, foreignKeyColumn, value);
         } catch (SQLException e) {
-            // Throws an error if false, so we show a message instead
+            // Throws an error if false, so we showAndWait a message instead
             e.printStackTrace();
             Alert a = new Alert(Alert.AlertType.WARNING);
             a.setTitle("Database Error");
             a.setHeaderText("Something went wrong connecting to the database.");
             a.setContentText(e.getMessage());
-            a.show();
+            a.showAndWait();
 
             // Highlight the field
             colInput.requestFocus();
@@ -69,7 +74,7 @@ public class ValidationManager {
             a.setTitle("Validation Error");
             a.setHeaderText("Please provide a valid value for " + colName + ".");
             a.setContentText("Value must be found in the " + foreignKeyColumn + " column in " + foreignKeyTable + ".");
-            a.show();
+            a.showAndWait();
 
             // Highlight the field
             colInput.requestFocus();
@@ -97,7 +102,7 @@ public class ValidationManager {
             a.setTitle("Validation Error");
             a.setHeaderText("Please provide a number for " + colName + ".");
             a.setContentText(e.getMessage());
-            a.show();
+            a.showAndWait();
 
             // Highlight the field
             colInput.requestFocus();
@@ -115,9 +120,15 @@ public class ValidationManager {
 
         // Attempt to parse as an int
         try {
-            Double.parseDouble(value);
+            double val = Double.parseDouble(value);
 
-            //todo validate positive, throw a different message and return false if fails
+            // By default, negatives are allowed, but we can prompt the user to be safe
+            if (val < 0) {
+                Alert a = new Alert(Alert.AlertType.CONFIRMATION);
+                a.setTitle("Negative Value");
+                a.setHeaderText("You have provided a negative number for " + colName + ". Please confirm this is correct");
+                a.showAndWait();
+            }
 
             return true;
 
@@ -127,7 +138,7 @@ public class ValidationManager {
             a.setTitle("Validation Error");
             a.setHeaderText("Please provide a number for " + colName + ".");
             a.setContentText(e.getMessage());
-            a.show();
+            a.showAndWait();
 
             // Highlight the field
             colInput.requestFocus();

@@ -641,7 +641,7 @@ public class DbManager {
             a.setTitle("Connection Error");
             a.setHeaderText("Could not connect to the database. Please reload the application or contact IT.");
             a.setContentText(e.getMessage());
-            a.show();
+            a.showAndWait();
         }
         return nullableColumns;
     }

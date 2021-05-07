@@ -285,7 +285,8 @@ public class Controller {
             }
 
             // Add decimal/double validation
-            if (connection.findDataType(currentTable, colName).equals("decimal")) {
+            String datatype = connection.findDataType(currentTable, colName);
+            if (datatype.equals("decimal") || datatype.equals("double")) {
                 ((IValidates) colInput).addValidator(
                         new CustomValidator() {
                             @Override
@@ -409,7 +410,7 @@ public class Controller {
                 a.setTitle("Connection Issue");
                 a.setHeaderText("We can't seem to connect to the database!");
                 a.setContentText(e.getMessage());
-                a.show();
+                a.showAndWait();
             }
         }
 
@@ -446,7 +447,7 @@ public class Controller {
             a.setTitle("Connection Issue");
             a.setHeaderText("We can't seem to connect to the database!");
             a.setContentText(e.getMessage());
-            a.show();
+            a.showAndWait();
         }
 
     }
@@ -497,7 +498,7 @@ public class Controller {
             a.setTitle("Connection Issue");
             a.setHeaderText("We can't seem to connect to the database!");
             a.setContentText(e.getMessage());
-            a.show();
+            a.showAndWait();
         }
 
     }
@@ -581,7 +582,7 @@ public class Controller {
             Alert a = new Alert(Alert.AlertType.INFORMATION);
             a.setTitle("Add Successful");
             a.setContentText("The record has been saved in the database.");
-            a.show();
+            a.showAndWait();
             //Get String arraylist of info Records combo box will be populated with
 //            ArrayList<String> updatedInfo = connection.getRecordNames(currentTable);
 //            int pkValue = Integer.parseInt(textInputs.get(pkColumnName));
@@ -607,7 +608,7 @@ public class Controller {
             a.setTitle("Bad Update");
             a.setHeaderText("Something went wrong!");
             a.setContentText(e.getMessage());
-            a.show();
+            a.showAndWait();
         }
     }
 
@@ -674,7 +675,7 @@ public class Controller {
             Alert a = new Alert(Alert.AlertType.INFORMATION);
             a.setTitle("Update Successful");
             a.setContentText("The record has been saved in the database.");
-            a.show();
+            a.showAndWait();
             //Get String arraylist of info Records combo box will be populated with
             ArrayList<String> updatedInfo = connection.getRecordNames(currentTable);
             //Variable for index position of the edited row
@@ -698,7 +699,7 @@ public class Controller {
             a.setTitle("Bad Update");
             a.setHeaderText("Something went wrong!");
             a.setContentText(e.getMessage());
-            a.show();
+            a.showAndWait();
         }
     }
 
