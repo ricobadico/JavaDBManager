@@ -705,7 +705,10 @@ public class Controller {
         // Datetime: pulled from ValidatingDatePicker
         if(connection.findDataType(currentTable, columnName).equals("datetime")){
             LocalDate dateInput = ((ValidatingDatePicker)vboxInputs.getChildren().get(i)).getValue();
-            input = dateInput.toString();
+            if (dateInput == null)
+                input = null;
+            else
+                input = dateInput.toString();
 
         // Decimal: Pulled from textfield, needs to be stripped of currency characters if not null
         } else if(connection.findDataType(currentTable, columnName).equals("decimal")) {
