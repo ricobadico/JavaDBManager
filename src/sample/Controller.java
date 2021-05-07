@@ -254,7 +254,8 @@ public class Controller {
                 colInput = new ValidatingTextField(currentTable, colName); // add a text field
             }
             colInput.setId("input" + colName); // give it an id
-                vboxInputs.getChildren().add(colInput); // add it to other vbox
+
+            vboxInputs.getChildren().add(colInput); // add it to other vbox
 
             // Time to add a slew of validators to the internal list of validators for this control.
             // These get called when the user leaves the input field, and are checked before inserting/updating
@@ -264,7 +265,7 @@ public class Controller {
                 ((IValidates) colInput).addValidator(
                         new CustomValidator() {
                             @Override
-                            public boolean checkValidity(HashMap<String, String> args) throws SQLException {
+                            public boolean checkValidity(HashMap<String, String> args, Control colInput) throws SQLException {
                                 return ValidationManager.isPositiveInt(colName, (ValidatingTextField) colInput);
                             }
                         });
@@ -280,7 +281,7 @@ public class Controller {
                 // Add that validator to the internal list of validators for this control
                 ((IValidates) colInput).addValidator(new CustomValidator() {
                     @Override
-                    public boolean checkValidity(HashMap<String, String> args) throws SQLException {
+                    public boolean checkValidity(HashMap<String, String> args, Control colInput) throws SQLException {
                         return ValidationManager.foreignKeyConstraintMet(colName, fkRef.getForeignKeyRefTable(),
                                 fkRef.getForeignKeyRefColumn(), (ValidatingTextField) colInput);
                     }

@@ -20,7 +20,6 @@ public interface IValidates {
     // TODO: it would be great if validators were stored backwards (stack?) or called backwards for subsequent user alerts
 
 
-    // TODO BUG TODO: (Eric's on it )THIS AWFUL BEAST IS SHARED AMONG ALL OBJECTS THAT IMPLEMENT THE INTERFACE! HOW CAN EACH HAVE ITS OWN?
     default ArrayList<CustomValidator> getValidators() {
         if(this.getClass().getName().equals("sample.ValidatingTextField")){
             return ((ValidatingTextField)this)._validators;
@@ -77,7 +76,7 @@ public interface IValidates {
                     // Run all validation
                     for (CustomValidator vldtr : getValidators()) {
                         try {
-                            boolean isValid = vldtr.checkValidity(args);
+                            boolean isValid = vldtr.checkValidity(args, (Control) this);
                             // if validation fails, it throws an exception with a useful message we can capture in an alert
                         } catch(SQLException e){
                             Alert a = new Alert(Alert.AlertType.WARNING);
@@ -125,23 +124,23 @@ public interface IValidates {
             // If any validation method fails, allPassed fails.
             try {
 
-                if(vldtr.checkValidity(args) == false) {
+                if(vldtr.checkValidity(args, (Control) this) == false) {
                     allPassed = false;
                     // we could break out at this point, but keeping it running will trigger any additional failure messages
                 }
             } catch (SQLException e) {
                 allPassed = false;
-//                Alert a = new Alert(Alert.AlertType.WARNING);
-//                a.setTitle("Validation Error");
-//                a.setHeaderText("Special validation error for " + args.get("colName") + ".");
-//                a.setContentText(e.getMessage());
-//                a.show();
-//
-//                // Highlight the field
-//                ((Control)this).requestFocus();
-//                System.out.println("Control class name: " + this.getClass().getName());
-//                if (this.getClass().getName().equals("ValidatingTextField"))
-//                    ((ValidatingTextField) this).selectAll();
+                Alert a = new Alert(Alert.AlertType.WARNING);
+                a.setTitle("Validation Error");
+                a.setHeaderText("Special validation error for " + columnName + ".");
+                a.setContentText(e.getMessage());
+                a.show();
+
+                // Highlight the field
+                ((Control)this).requestFocus();
+                System.out.println("Control class name: " + this.getClass().getName());
+                if (this.getClass().getName().equals("ValidatingTextField"))
+                    ((ValidatingTextField) this).selectAll();
             }
         }
 

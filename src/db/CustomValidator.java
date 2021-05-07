@@ -1,5 +1,7 @@
 package db;
 
+import javafx.scene.control.Control;
+
 import java.sql.SQLException;
 import java.util.HashMap;
 
@@ -12,6 +14,6 @@ public abstract class CustomValidator {
      * to get at the Control for another column's current input in-app.
      */
 
-    public abstract boolean checkValidity(HashMap <String, String> args) throws SQLException;
+    public abstract boolean checkValidity(HashMap<String, String> args, Control colInput) throws SQLException;
 
 }
