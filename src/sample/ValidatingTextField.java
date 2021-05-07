@@ -25,9 +25,17 @@ public class ValidatingTextField extends TextField implements IValidates{
         this._validators = new ArrayList<CustomValidator>();
     }
 
+    // Gets list of validators (used by IValidates interface)
     @Override
     public ArrayList<CustomValidator> getValidators() {
         return _validators;
+    }
+
+    // Gets input value (IValidates forces this to be implemented; since ValidatingDatePicker also has this,
+    // allows for easy extraction of value without needing to care how it's done)
+    @Override
+    public String getInputAsString() {
+        return this.getText();
     }
 
 

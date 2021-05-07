@@ -72,16 +72,24 @@ public class Controller {
 
         // Get table names for table combo box
         // These are currently going to be hard-coded to a few options, but all the subsequent methods are set to to take anything
-        DbManager connection = new DbManager();
+        connection = new DbManager();
         ArrayList<String> tableNames = connection.getAllTableNames();
         // All tables that have predefined classes written (that define special formatting and validation) get pushed to the top and starred
         ObservableList tableNamesContents = FXCollections.observableList(highlightPredefinedClasses(tableNames)); // add list to combo box
         cbxTableList.setItems(tableNamesContents);
 
         // Set listener for Table combo box
-        cbxTableList.getSelectionModel().selectedItemProperty().addListener(change ->
-            populateTableSelection()
-        );
+        cbxTableList.getSelectionModel().selectedItemProperty().addListener(change -> {
+            try {
+                populateTableSelection();
+            } catch (SQLException e) {
+                Alert a = new Alert(Alert.AlertType.WARNING);
+                a.setTitle("Connection Error");
+                a.setHeaderText("Could not connect to the database. Please reload the application or contact IT.");
+                a.setContentText(e.getMessage());
+                a.show();
+            }
+        });
 
         // Set listener for record combo box change
         cbxRecordList.getSelectionModel().selectedItemProperty().addListener(change -> {
@@ -146,12 +154,15 @@ public class Controller {
      * - Labels and fields are provided for each column in the chosen table.
      * - The Record combo box is enabled for selection.
      */
-    private void populateTableSelection() {
+    private void populateTableSelection() throws SQLException {
 
         // Get current table name (removing formatting asterisk if one exists),
         // setting member-level variable to track state of this
         currentTable = cbxTableList.getSelectionModel().getSelectedItem()
             .replace("*", "");
+
+        // Get a list of columns in the current table that are nullable (used for validation below)
+        ArrayList<String> nullableColumns = connection.getNullableColumnsNames(currentTable);
 
         // Check to see if a class exists with the selected item.
         //  If so, we want to use it instead of the default-choosing code
@@ -260,6 +271,16 @@ public class Controller {
             // Time to add a slew of validators to the internal list of validators for this control.
             // These get called when the user leaves the input field, and are checked before inserting/updating
 
+            // Add non-null validation if applicable to this column
+            if (nullableColumns.contains(currentTable)){
+                ((IValidates) colInput).addValidator(new CustomValidator() {
+                        @Override
+                        public boolean checkValidity(HashMap<String, String> args, Control colInput) throws SQLException {
+                            return ValidationManager.isNotNull(colInput, colName);
+                        }
+                });
+            }
+
             // Add validator to check for positive integers for int inputs
             if (connection.findDataType(currentTable, colName).equals("int")) {
                 ((IValidates) colInput).addValidator(
@@ -275,7 +296,7 @@ public class Controller {
             // Add foreign key reference validation if needed (regardless of data type)
             // Call DB information schema to see if this column is a foreign key, and if so, to what
             DbManager.ForeignKeyReference fkRef = connection.getForeignKeyReferences(currentTable, colName);
-            if (colInput.getClass().getName().equals("sample.ValidatingTextField") // not going to add this to datepickers, shouldn't be fk
+            if ((colInput instanceof ValidatingTextField) // not going to add this to datepickers, shouldn't be fk
                && fkRef != null){ // if a fk reference to a pk was found..
 
                 // Add that validator to the internal list of validators for this control
@@ -286,7 +307,6 @@ public class Controller {
                                 fkRef.getForeignKeyRefColumn(), (ValidatingTextField) colInput);
                     }
                 });
-
             }
 
             // If a preexisting table class exists, add custom validation if any
@@ -512,6 +532,7 @@ public class Controller {
             String columnName = vboxLabels.getChildren().get(i) // get the current label
                     .getId().substring(3); // and get the id (eg "lblAgentId") and remove the lbl to get the SQL column name
 
+            // Get input value for the column
             String input = null;
             // Special case to handle if the current column is a primary key
             if (( ! connection.columnPrimaryKeyAutoIncrements(currentTable, pkColumnName))
@@ -519,16 +540,16 @@ public class Controller {
                 System.out.println("Current column is table primary key column");
                 int newPKValue = connection.highestPKValueForTable(currentTable, pkColumnName) + 1;
                 input = String.valueOf(newPKValue);
-                textInputs.put(columnName, input);
 
+            // Otherwise, run function to pull out value
             } else {
                 System.out.println("Table PK autoincrements");
 
                 input = getInput(connection, i, columnName);
-
-                // Add pair to arraylist
-                textInputs.put(columnName, input);
             }
+
+            // Add pair to arraylist
+            textInputs.put(columnName, input);
 
             // Now that we've gotten a value for this current input, we can check validation
             IValidates inputControl = (IValidates) vboxInputs.getChildren().get(i); // grab ref to input

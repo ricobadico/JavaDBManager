@@ -2,6 +2,7 @@ package sample;
 
 import db.DbManager;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Control;
 import javafx.scene.control.TextField;
 
 import java.sql.SQLException;
@@ -74,5 +75,36 @@ public class ValidationManager {
             colInput.selectAll();
         }
         return constraintMet;
+    }
+
+    public static boolean isNotNull(Control colInput, String colName) {
+
+        // Attempt to parse as an int
+        try {
+
+        // Get value
+        String value = ((IValidates)colInput).getInputAsString();
+
+            if(value == null) {
+                throw new Exception(colName + " cannot be null.");
+            }
+            else
+                return true;
+            // If the parse failed, bring up message to admonish the user's foolery
+        } catch (Exception e){
+            Alert a = new Alert(Alert.AlertType.WARNING);
+            a.setTitle("Validation Error");
+            a.setHeaderText("Please provide a number for " + colName + ".");
+            a.setContentText(e.getMessage());
+            a.show();
+
+            // Highlight the field
+            colInput.requestFocus();
+            if (colInput instanceof ValidatingTextField)
+                ((ValidatingTextField)colInput).selectAll();
+
+            // Return false
+            return false;
+        }
     }
 }

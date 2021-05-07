@@ -30,4 +30,11 @@ public class ValidatingDatePicker extends DatePicker implements IValidates{
     public ArrayList<CustomValidator> getValidators() {
       return _validators;
     }
+
+    // Gets input value (IValidates forces this to be implemented; since ValidatingDatePicker also has this,
+    // allows for easy extraction of value without needing to care how it's done)
+    @Override
+    public String getInputAsString() {
+        return this.getValue().toString();
+    }
 }

@@ -22,6 +22,8 @@ public interface IValidates {
 
     ArrayList<CustomValidator> getValidators();
 
+    String getInputAsString();
+
     default void addValidator(CustomValidator validator){
         getValidators().add(validator);
     }
@@ -48,11 +50,7 @@ public interface IValidates {
 
                     // A little messy here... we always want to pass the input's value as a string when validating,
                     // but depending on the input given need to grab that differently
-                    String valueToValidate;
-                    if (connection.findDataType(tableName, columnName).equals("datetime")) // getValue() grabs from date picker
-                        valueToValidate = ((DatePicker) this).getValue().toString();
-                    else // we can use getText() to grab from textfields
-                        valueToValidate = ((ValidatingTextField) this).getText();
+                    String valueToValidate = this.getInputAsString();
 
                     // Now, we use the custom validation
 

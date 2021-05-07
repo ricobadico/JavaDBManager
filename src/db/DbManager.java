@@ -1,7 +1,5 @@
 package db;
 
-import javafx.collections.ObservableList;
-
 import java.math.BigDecimal;
 import java.sql.*;
 import java.sql.Date;
@@ -612,5 +610,28 @@ public class DbManager {
         }
         return datatype;
     }
+
+
+    public ArrayList<String> getNullableColumnsNames(String tableName) throws SQLException {
+
+        ArrayList<String> nullableColumns = new ArrayList<>();
+
+        // Create a query getting back all nullable columns in this table
+        String query =
+            "SELECT COLUMN_NAME " +
+            "FROM INFORMATION_SCHEMA.COLUMNS " +
+            "WHERE table_name = '" + tableName + "' " + // not worried about injection here since user has no control over customizing this value
+            "AND IS_NULLABLE = 'NO'";
+        Statement statement = connection.createStatement();
+        ResultSet res = statement.executeQuery(query);
+
+        // Add each record as a key-value pair in the hashmap
+        while(res.next()){
+            nullableColumns.add(res.getString(1));
+        }
+
+        return nullableColumns;
+    }
+
 
 }
