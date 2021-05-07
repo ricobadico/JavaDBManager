@@ -20,17 +20,7 @@ public interface IValidates {
     // TODO: it would be great if validators were stored backwards (stack?) or called backwards for subsequent user alerts
 
 
-    default ArrayList<CustomValidator> getValidators() {
-        if(this.getClass().getName().equals("sample.ValidatingTextField")){
-            return ((ValidatingTextField)this)._validators;
-        }
-        else if(this.getClass().getName().equals("sample.ValidatingDatePicker")){
-            return ((ValidatingDatePicker)this)._validators;
-        }
-        else{
-            return null;
-        }
-    }
+    ArrayList<CustomValidator> getValidators();
 
     default void addValidator(CustomValidator validator){
         getValidators().add(validator);

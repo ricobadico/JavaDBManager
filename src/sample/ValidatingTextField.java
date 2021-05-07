@@ -3,6 +3,7 @@ import db.CustomValidator;
 import javafx.scene.control.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * Wrapper for javaFX TextFieldl exactly the same but implements
@@ -24,6 +25,10 @@ public class ValidatingTextField extends TextField implements IValidates{
         this._validators = new ArrayList<CustomValidator>();
     }
 
+    @Override
+    public ArrayList<CustomValidator> getValidators() {
+        return _validators;
+    }
 
 
 }

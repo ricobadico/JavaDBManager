@@ -4,6 +4,7 @@ import db.CustomValidator;
 import javafx.scene.control.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * Wrapper for javaFX TextField exactly the same but implements
@@ -24,4 +25,9 @@ public class ValidatingDatePicker extends DatePicker implements IValidates{
     }
 
 
+
+    @Override
+    public ArrayList<CustomValidator> getValidators() {
+      return _validators;
+    }
 }
