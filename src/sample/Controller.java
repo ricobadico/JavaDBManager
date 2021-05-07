@@ -513,33 +513,21 @@ public class Controller {
                     .getId().substring(3); // and get the id (eg "lblAgentId") and remove the lbl to get the SQL column name
 
             String input = null;
-            if (connection.columnPrimaryKeyAutoIncrements(currentTable, pkColumnName)) {
+            // Special case to handle if the current column is a primary key
+            if (( ! connection.columnPrimaryKeyAutoIncrements(currentTable, pkColumnName))
+            && columnName.equals(pkColumnName)) {
+                System.out.println("Current column is table primary key column");
+                int newPKValue = connection.highestPKValueForTable(currentTable, pkColumnName) + 1;
+                input = String.valueOf(newPKValue);
+                textInputs.put(columnName, input);
+
+            } else {
                 System.out.println("Table PK autoincrements");
-                if (!columnName.equals(pkColumnName)) {
 
-                    input = getInput(connection, i, columnName);
+                input = getInput(connection, i, columnName);
 
-                    // Add pair to arraylist
-                    textInputs.put(columnName, input);
-                }
-
-            }
-            else {
-                System.out.println("Table PK does not autoincrement");
-                if (columnName.equals(pkColumnName)) {
-                    System.out.println("Current column is table primary key column");
-                    int newPKValue = connection.highestPKValueForTable(currentTable, pkColumnName) + 1;
-                    input = String.valueOf(newPKValue);
-                    textInputs.put(columnName, input);
-                }
-                else {
-
-                    input = getInput(connection, i, columnName);
-
-                    // Add pair to arraylist
-                    textInputs.put(columnName, input);
-
-                }
+                // Add pair to arraylist
+                textInputs.put(columnName, input);
             }
 
             // Now that we've gotten a value for this current input, we can check validation
