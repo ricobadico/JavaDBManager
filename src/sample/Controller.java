@@ -506,8 +506,10 @@ public class Controller {
 
         // Gather the text boxes data
         for(int i = 0; i < vboxInputs.getChildren().size(); i++) {
+
+            //Control inputControl = (Control) vboxLabels.getChildren().get(i); -- I tried putting all subsequent references into a var and it stopped working, much to my dismay
             // Get column name from labels
-            String columnName = ((Label) vboxLabels.getChildren().get(i)) // get the current label
+            String columnName = vboxLabels.getChildren().get(i) // get the current label
                     .getId().substring(3); // and get the id (eg "lblAgentId") and remove the lbl to get the SQL column name
 
             String input = null;
@@ -515,39 +517,8 @@ public class Controller {
                 System.out.println("Table PK autoincrements");
                 if (!columnName.equals(pkColumnName)) {
 
+                    input = getInput(connection, i, columnName);
 
-                    // We need to process the data a bit based on the data type in the db
-                    // Datetime: pulled from ValidatingDatePicker
-                    if (connection.findDataType(currentTable, columnName).equals("datetime")){
-                        LocalDate dateInput = ((ValidatingDatePicker) vboxInputs.getChildren().get(i)).getValue();
-                            if(dateInput != null) {
-                                input = dateInput.toString();
-                            }
-                            else input = null;
-
-                        // Decimal: Pulled from textfield, needs to be stripped of currency characters if not null
-                    } else if (connection.findDataType(currentTable, columnName).equals("decimal")) {
-                        // Get input from text box
-                        input = ((ValidatingTextField) vboxInputs.getChildren().get(i)).getText();
-
-                        // If empty space, set value to null
-                        if (input.isBlank())
-                            input = null;
-                        else {
-                            // Otherwise, remove extra characters
-                            input = ((input.replaceAll(",", "")).replaceAll("\\$", ""));
-                            System.out.println("DECIMAL: " + input);
-                        }
-                        // Varchar/Int/ anything else
-                    } else {
-                        // Get input from text box
-                        input = ((ValidatingTextField) vboxInputs.getChildren().get(i)).getText();
-
-                        // If empty space, set value to null
-                        if (input.isBlank())
-                            input = null;
-                    }
-                    System.out.println(columnName + " " + input);
                     // Add pair to arraylist
                     textInputs.put(columnName, input);
                 }
@@ -562,35 +533,9 @@ public class Controller {
                     textInputs.put(columnName, input);
                 }
                 else {
-                    // We need to process the data a bit based on the data type in the db
-                    // Datetime: pulled from ValidatingDatePicker
-                    if (connection.findDataType(currentTable, columnName).equals("datetime")) {
-                        LocalDate dateInput = ((ValidatingDatePicker) vboxInputs.getChildren().get(i)).getValue();
-                        input = dateInput.toString();
 
-                        // Decimal: Pulled from textfield, needs to be stripped of currency characters if not null
-                    } else if (connection.findDataType(currentTable, columnName).equals("decimal")) {
-                        // Get input from text box
-                        input = ((ValidatingTextField) vboxInputs.getChildren().get(i)).getText();
+                    input = getInput(connection, i, columnName);
 
-                        // If empty space, set value to null
-                        if (input.isBlank())
-                            input = null;
-                        else {
-                            // Otherwise, remove extra characters
-                            input = ((input.replaceAll(",", "")).replaceAll("\\$", ""));
-                            System.out.println("DECIMAL: " + input);
-                        }
-                        // Varchar/Int/ anything else
-                    } else {
-                        // Get input from text box
-                        input = ((ValidatingTextField) vboxInputs.getChildren().get(i)).getText();
-
-                        // If empty space, set value to null
-                        if (input.isBlank())
-                            input = null;
-                    }
-                    System.out.println(columnName + " " + input);
                     // Add pair to arraylist
                     textInputs.put(columnName, input);
 
@@ -680,36 +625,8 @@ public class Controller {
             String columnName = ((Label)vboxLabels.getChildren().get(i)) // get the current label
                     .getId().substring(3); // and get the id (eg "lblAgentId") and remove the lbl to get the SQL column name;
 
-            String input;
-
-            // We need to process the data a bit based on the data type in the db
-            // Datetime: pulled from ValidatingDatePicker
-            if(connection.findDataType(currentTable, columnName).equals("datetime")){
-                LocalDate dateInput = ((ValidatingDatePicker)vboxInputs.getChildren().get(i)).getValue();
-                input = dateInput.toString();
-
-            // Decimal: Pulled from textfield, needs to be stripped of currency characters if not null
-            } else if(connection.findDataType(currentTable, columnName).equals("decimal")) {
-                // Get input from text box
-                input = ((ValidatingTextField)vboxInputs.getChildren().get(i)).getText();
-
-                // If empty space, set value to null
-                if(input.isBlank())
-                    input = null;
-                else {
-                    // Otherwise, remove extra characters
-                    input = ((input.replaceAll(",", "")).replaceAll("\\$", ""));
-                    System.out.println("DECIMAL: " + input);
-                }
-            // Varchar/Int/ anything else
-            } else {
-                // Get input from text box
-                 input = ((ValidatingTextField)vboxInputs.getChildren().get(i)).getText();
-
-                // If empty space, set value to null
-                if(input.isBlank())
-                    input = null;
-            }
+            // Get value from input
+            String input = getInput(connection, i, columnName);
 
             // Add pair to arraylist
             textInputs.put(columnName, input);
@@ -772,6 +689,47 @@ public class Controller {
             a.setContentText(e.getMessage());
             a.show();
         }
+    }
+
+    /**
+     * Grabs the input value of a textbox based on its datatype.
+     * @param connection DB manager object
+     * @param i current iteration
+     * @param columnName DB name of current column
+     * @return
+     */
+    private String getInput(DbManager connection, int i, String columnName) {
+        String input;
+
+        // We need to process the data a bit based on the data type in the db
+        // Datetime: pulled from ValidatingDatePicker
+        if(connection.findDataType(currentTable, columnName).equals("datetime")){
+            LocalDate dateInput = ((ValidatingDatePicker)vboxInputs.getChildren().get(i)).getValue();
+            input = dateInput.toString();
+
+        // Decimal: Pulled from textfield, needs to be stripped of currency characters if not null
+        } else if(connection.findDataType(currentTable, columnName).equals("decimal")) {
+            // Get input from text box
+            input = ((ValidatingTextField)vboxInputs.getChildren().get(i)).getText();
+
+            // If empty space, set value to null
+            if(input.isBlank())
+                input = null;
+            else {
+                // Otherwise, remove extra characters
+                input = ((input.replaceAll(",", "")).replaceAll("\\$", ""));
+                System.out.println("DECIMAL: " + input);
+            }
+        // Varchar/Int/ anything else
+        } else {
+            // Get input from text box
+             input = ((ValidatingTextField)vboxInputs.getChildren().get(i)).getText();
+
+            // If empty space, set value to null
+            if(input.isBlank())
+                input = null;
+        }
+        return input;
     }
 
     /**

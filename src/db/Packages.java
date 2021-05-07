@@ -5,6 +5,7 @@ import javafx.scene.control.DatePicker;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,6 +45,7 @@ public class Packages implements ITableEntity{
             @Override
             public boolean checkValidity(HashMap<String, String> args, Control colInput) throws SQLException {
 
+                try {
                 // Get endDate input value
                 LocalDate endDate = LocalDate.parse(args.get("value"));
 
@@ -58,6 +60,13 @@ public class Packages implements ITableEntity{
 
                 // If above check passed, we're good!
                 return true;
+
+            // This catch exists to manage when start date is blank. In that case, we have nothing to compare,
+            // so this check can actually return true (we can leave not-null validation to a separate validator, if needed)
+             } catch (NullPointerException e){
+                    System.out.println("Skipping StartDate<EndDate validation with null value");
+                    return true;
+                }
             }
         });
 

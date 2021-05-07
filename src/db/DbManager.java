@@ -445,7 +445,7 @@ public class DbManager {
                     // Otherwise we set value based on data type
                     switch (datatype) {
                         case "int":
-                            int value = parseInt(inputValue);
+                            statement.setInt(i, parseInt(inputValue));
                             break;
 
                         case "decimal":
