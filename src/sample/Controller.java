@@ -80,15 +80,7 @@ public class Controller {
 
         // Set listener for Table combo box
         cbxTableList.getSelectionModel().selectedItemProperty().addListener(change -> {
-            try {
                 populateTableSelection();
-            } catch (SQLException e) {
-                Alert a = new Alert(Alert.AlertType.WARNING);
-                a.setTitle("Connection Error");
-                a.setHeaderText("Could not connect to the database. Please reload the application or contact IT.");
-                a.setContentText(e.getMessage());
-                a.show();
-            }
         });
 
         // Set listener for record combo box change
@@ -154,7 +146,7 @@ public class Controller {
      * - Labels and fields are provided for each column in the chosen table.
      * - The Record combo box is enabled for selection.
      */
-    private void populateTableSelection() throws SQLException {
+    private void populateTableSelection() {
 
         // Get current table name (removing formatting asterisk if one exists),
         // setting member-level variable to track state of this
@@ -287,11 +279,21 @@ public class Controller {
                         new CustomValidator() {
                             @Override
                             public boolean checkValidity(HashMap<String, String> args, Control colInput) throws SQLException {
-                                return ValidationManager.isPositiveInt(colName, (ValidatingTextField) colInput);
+                                return ValidationManager.isInt(colName, (ValidatingTextField) colInput);
                             }
                         });
             }
-            // todo need decimal/double validation
+
+            // Add decimal/double validation
+            if (connection.findDataType(currentTable, colName).equals("decimal")) {
+                ((IValidates) colInput).addValidator(
+                        new CustomValidator() {
+                            @Override
+                            public boolean checkValidity(HashMap<String, String> args, Control colInput) throws SQLException {
+                                return ValidationManager.isDecimal(colName, (ValidatingTextField) colInput);
+                            }
+                        });
+            }
 
             // Add foreign key reference validation if needed (regardless of data type)
             // Call DB information schema to see if this column is a foreign key, and if so, to what

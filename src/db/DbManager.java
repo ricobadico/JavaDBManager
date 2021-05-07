@@ -1,5 +1,7 @@
 package db;
 
+import javafx.scene.control.Alert;
+
 import java.math.BigDecimal;
 import java.sql.*;
 import java.sql.Date;
@@ -612,9 +614,12 @@ public class DbManager {
     }
 
 
-    public ArrayList<String> getNullableColumnsNames(String tableName) throws SQLException {
+    public ArrayList<String> getNullableColumnsNames(String tableName){
 
         ArrayList<String> nullableColumns = new ArrayList<>();
+
+        try{
+
 
         // Create a query getting back all nullable columns in this table
         String query =
@@ -630,6 +635,14 @@ public class DbManager {
             nullableColumns.add(res.getString(1));
         }
 
+        }
+        catch (SQLException e) {
+            Alert a = new Alert(Alert.AlertType.WARNING);
+            a.setTitle("Connection Error");
+            a.setHeaderText("Could not connect to the database. Please reload the application or contact IT.");
+            a.setContentText(e.getMessage());
+            a.show();
+        }
         return nullableColumns;
     }
 
