@@ -13,6 +13,9 @@ public class ValidationManager {
         // Get value
         String value = colInput.getText();
 
+        // If null, we don't want to run test, technically pass (let a nullable test handle that)
+        if (value == null || value.isEmpty()) return true;
+
         // Attempt to parse as an int
 
         try {
@@ -48,6 +51,9 @@ public class ValidationManager {
     public static boolean foreignKeyConstraintMet(String colName, String foreignKeyTable, String foreignKeyColumn, TextField colInput) {
 
         String value = colInput.getText();
+
+        // If null, we don't want to run test, technically pass (let a nullable test handle that)
+        if (value == null || value.isEmpty()) return true;
 
         // Set up a db connection
         DbManager connection = new DbManager();
@@ -117,6 +123,9 @@ public class ValidationManager {
     public static boolean isDecimal(String colName, ValidatingTextField colInput) {
         // Get value
         String value = colInput.getText();
+
+        // If null, we don't want to run test, technically pass (let a nullable test handle that)
+        if (value == null || value.isEmpty()) return true;
 
         // Attempt to parse as an int
         try {
