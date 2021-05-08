@@ -74,8 +74,8 @@ public class Controller {
         // These are currently going to be hard-coded to a few options, but all the subsequent methods are set to to take anything
         DbManager connection = new DbManager();
         ArrayList<String> tableNames = connection.getAllTableNames();
-
-        ObservableList tableNamesContents = FXCollections.observableList(tableNames); // add list to combo box
+        // All tables that have predefined classes written (that define special formatting and validation) get pushed to the top and starred
+        ObservableList tableNamesContents = FXCollections.observableList(highlightPredefinedClasses(tableNames)); // add list to combo box
         cbxTableList.setItems(tableNamesContents);
 
         // Set listener for Table combo box
@@ -117,8 +117,6 @@ public class Controller {
         });
     }
 
-
-
     private void populateRecordCBOnly() {
         // Get record names for combo box
         connection = new db.DbManager(); // create manager class (establishes connection)
@@ -150,9 +148,10 @@ public class Controller {
      */
     private void populateTableSelection() {
 
-        // Get currently selected table name
-        String chosenTable = cbxTableList.getSelectionModel().getSelectedItem();
-        currentTable = chosenTable; // set member-level variable to track state of this
+        // Get current table name (removing formatting asterisk if one exists),
+        // setting member-level variable to track state of this
+        currentTable = cbxTableList.getSelectionModel().getSelectedItem()
+            .replace("*", "");
 
         // Check to see if a class exists with the selected item.
         //  If so, we want to use it instead of the default-choosing code
@@ -181,7 +180,7 @@ public class Controller {
             }
         // Otherwise, create defaults record names
         } else{
-            recordNames = connection.getRecordNames(chosenTable); // call method to get descriptive names for each record
+            recordNames = connection.getRecordNames(currentTable); // call method to get descriptive names for each record
         }
         // Now, attach those record names to the combo box
         cbxContents = FXCollections.observableList(recordNames); // convert to observable list
@@ -192,7 +191,7 @@ public class Controller {
         vboxInputs.getChildren().clear();
 
         // Create labels and textboxes for each column
-        ArrayList<String> columnNames = connection.getColumnNames(chosenTable); // get col names
+        ArrayList<String> columnNames = connection.getColumnNames(currentTable); // get col names
 
         // If we have a class with column labels, we can grab them now
         HashMap<String, String> formattedColumnLabels = null;
@@ -230,6 +229,7 @@ public class Controller {
             // Datetime data: create datepicker
             if(connection.findDataType(currentTable, colName).equals("datetime")) {
                 colInput = new ValidatingDatePicker(currentTable, colName);
+                colInput.setMinWidth(250); // sets width of datepicker to match textinput length
             }
 
             // Decimal data: create textbox with decimal formatting and validation
@@ -773,6 +773,36 @@ public class Controller {
         }
     }
 
-
+    /**
+     * Takes an array of table names and formats it so that tables
+     * with predefined class files are on top with an asterisk.
+     * @param tableNames ArrayList of table name strings
+     */
+    //TODO: it is vaguely magic that this works
+    private ArrayList<String> highlightPredefinedClasses(ArrayList<String> tableNames) {
+        ArrayList<String> topTables = new ArrayList<>();
+        for (int i = 0; i < tableNames.size(); i++){
+            String tableName = tableNames.get(i);
+            // Check to see if a class exists with the selected item.
+            //  If so, we want to use it instead of the default-choosing code
+            Class<ITableEntity> checkForTableClass;
+            try {
+                checkForTableClass = (Class<ITableEntity>) Class.forName("db." + tableName,    // Checks for the classfile in the database package
+                        false, this.getClass().getClassLoader()); // Extra params to make it work
+                // Class.forName calls an exception if the class doesn't exist.
+            } catch (ClassNotFoundException e) {
+                checkForTableClass = null;
+            }
+            // If a predefined class did exist, we add an * and bring it to the top of the array
+            if(checkForTableClass != null) {
+                tableName = "*" + tableName;
+                tableNames.remove(i);
+                topTables.add(topTables.size(), tableName);
+            }
+        }
+        // Once done, we add the top classes to the top of the original list
+        topTables.addAll(tableNames);
+        return topTables;
+    }
 
 }

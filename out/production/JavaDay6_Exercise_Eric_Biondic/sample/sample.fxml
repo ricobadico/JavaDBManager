@@ -5,117 +5,163 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.effect.DropShadow?>
+<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.paint.Color?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="487.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
+<BorderPane prefHeight="506.0" prefWidth="754.0" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
    <center>
-      <ScrollPane fitToWidth="true" BorderPane.alignment="CENTER">
-         <content>
-            <HBox alignment="TOP_CENTER" maxHeight="-Infinity" prefHeight="240.0" prefWidth="200.0">
-               <children>
-                  <VBox fx:id="vboxLabels" maxHeight="-Infinity" prefHeight="240.0" prefWidth="248.0">
-                     <padding>
-                        <Insets left="20.0" top="10.0" />
-                     </padding>
-                  </VBox>
-                  <VBox fx:id="vboxInputs" alignment="TOP_CENTER" maxHeight="-Infinity" prefHeight="240.0" prefWidth="450.0" spacing="5.0">
-                     <padding>
-                        <Insets left="20.0" right="20.0" top="10.0" />
-                     </padding>
-                  </VBox>
-               </children>
-            </HBox>
-         </content>
-         <opaqueInsets>
-            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-         </opaqueInsets>
-      </ScrollPane>
-   </center>
-   <bottom>
-      <HBox alignment="CENTER" prefHeight="66.0" prefWidth="600.0" BorderPane.alignment="CENTER">
+      <VBox BorderPane.alignment="CENTER">
          <children>
-            <Region prefHeight="200.0" prefWidth="150.0" />
-            <Button fx:id="btnEdit" disable="true" minWidth="-Infinity" mnemonicParsing="false" text="Edit" HBox.hgrow="ALWAYS">
-               <font>
-                  <Font size="18.0" />
-               </font>
-            </Button>
-            <Region layoutX="285.0" layoutY="10.0" prefHeight="67.0" prefWidth="150.0" />
-            <Button fx:id="btnAdd" disable="true" minWidth="-Infinity" mnemonicParsing="false" text="Add">
-               <font>
-                  <Font size="18.0" />
-               </font>
-            </Button>
-            <Region prefHeight="67.0" prefWidth="150.0" />
-            <Button fx:id="btnSave" alignment="CENTER" disable="true" minWidth="-Infinity" mnemonicParsing="false" text="Save">
-               <font>
-                  <Font size="18.0" />
-               </font>
-            </Button>
-            <Region prefHeight="200.0" prefWidth="150.0" />
-         </children>
-      </HBox>
-   </bottom>
-   <padding>
-      <Insets top="15.0" />
-   </padding>
-   <top>
-      <VBox alignment="CENTER" prefHeight="126.0" prefWidth="600.0" BorderPane.alignment="CENTER">
-         <children>
-            <Label alignment="CENTER" text="Data Manager" textAlignment="CENTER">
-               <font>
-                  <Font name="System Bold" size="27.0" />
-               </font>
-            </Label>
-            <HBox alignment="CENTER" prefHeight="61.0" prefWidth="600.0">
+            <VBox alignment="CENTER" prefHeight="123.0" prefWidth="624.0" style="-fx-border-color: #001a33;">
                <children>
-                  <Region prefHeight="200.0" prefWidth="200.0" />
-                  <Label minWidth="-Infinity" text="Select a Table:" textAlignment="CENTER">
-                     <HBox.margin>
-                        <Insets right="20.0" />
-                     </HBox.margin>
-                     <font>
-                        <Font size="16.0" />
-                     </font>
-                  </Label>
-                  <ComboBox fx:id="cbxTableList" prefHeight="25.0" prefWidth="244.0">
-                     <HBox.margin>
-                        <Insets left="20.0" />
-                     </HBox.margin>
-                  </ComboBox>
-                  <Region prefHeight="200.0" prefWidth="200.0" />
+                  <Region prefHeight="38.0" prefWidth="618.0" />
+                  <HBox alignment="CENTER" prefHeight="61.0" prefWidth="600.0">
+                     <children>
+                        <Region prefHeight="200.0" prefWidth="200.0" />
+                        <Label minWidth="-Infinity" text="Select a Table:" textAlignment="CENTER">
+                           <HBox.margin>
+                              <Insets right="20.0" />
+                           </HBox.margin>
+                           <font>
+                              <Font name="Century Gothic" size="16.0" />
+                           </font>
+                        </Label>
+                        <ComboBox fx:id="cbxTableList" prefHeight="25.0" prefWidth="244.0" style="-fx-background-radius: 0.5em;">
+                           <HBox.margin>
+                              <Insets left="20.0" />
+                           </HBox.margin>
+                        </ComboBox>
+                        <Region prefHeight="200.0" prefWidth="200.0" />
+                     </children>
+                  </HBox>
+                  <HBox alignment="CENTER" layoutX="10.0" layoutY="62.0" prefHeight="61.0" prefWidth="600.0">
+                     <children>
+                        <Region prefHeight="200.0" prefWidth="200.0" />
+                        <Label minWidth="-Infinity" text="Select a Record:" textAlignment="CENTER">
+                           <HBox.margin>
+                              <Insets right="30.0" />
+                           </HBox.margin>
+                           <font>
+                              <Font name="Century Gothic" size="16.0" />
+                           </font>
+                        </Label>
+                        <ComboBox fx:id="cbxRecordList" disable="true" prefHeight="25.0" prefWidth="244.0" style="-fx-background-radius: 0.5em;">
+                           <HBox.margin>
+                              <Insets right="5.0" />
+                           </HBox.margin>
+                        </ComboBox>
+                        <Region prefHeight="200.0" prefWidth="200.0" />
+                     </children>
+                  </HBox>
                </children>
-            </HBox>
-            <HBox alignment="CENTER" layoutX="10.0" layoutY="62.0" prefHeight="61.0" prefWidth="600.0">
-               <children>
-                  <Region prefHeight="200.0" prefWidth="200.0" />
-                  <Label minWidth="-Infinity" text="Select a Record:" textAlignment="CENTER">
-                     <HBox.margin>
-                        <Insets right="30.0" />
-                     </HBox.margin>
-                     <font>
-                        <Font size="16.0" />
-                     </font>
-                  </Label>
-                  <ComboBox fx:id="cbxRecordList" disable="true" prefHeight="25.0" prefWidth="244.0">
-                     <HBox.margin>
-                        <Insets right="5.0" />
-                     </HBox.margin>
-                  </ComboBox>
-                  <Region prefHeight="200.0" prefWidth="200.0" />
-               </children>
-            </HBox>
+               <opaqueInsets>
+                  <Insets />
+               </opaqueInsets>
+               <padding>
+                  <Insets bottom="5.0" />
+               </padding>
+            </VBox>
+            <ScrollPane prefHeight="312.0" prefWidth="624.0" style="-fx-border-color: #001a33;">
+               <content>
+                  <HBox alignment="TOP_CENTER" prefHeight="282.0" prefWidth="585.0">
+                     <children>
+                        <VBox fx:id="vboxLabels" prefHeight="240.0" prefWidth="227.0">
+                           <padding>
+                              <Insets left="20.0" top="10.0" />
+                           </padding>
+                        </VBox>
+                        <VBox fx:id="vboxInputs" alignment="TOP_CENTER" prefHeight="240.0" prefWidth="269.0" spacing="5.0">
+                           <padding>
+                              <Insets left="20.0" right="20.0" top="10.0" />
+                           </padding>
+                        </VBox>
+                     </children>
+                  </HBox>
+               </content>
+               <VBox.margin>
+                  <Insets bottom="2.0" top="2.0" />
+               </VBox.margin>
+            </ScrollPane>
          </children>
-         <opaqueInsets>
-            <Insets />
-         </opaqueInsets>
-         <padding>
-            <Insets bottom="5.0" />
-         </padding>
+         <BorderPane.margin>
+            <Insets left="2.0" right="2.0" />
+         </BorderPane.margin>
       </VBox>
+   </center>
+   <left>
+      <AnchorPane prefHeight="506.0" prefWidth="131.0" style="-fx-background-color: #ff9933;" BorderPane.alignment="CENTER">
+         <children>
+            <Text fill="#0045cf" layoutX="35.0" layoutY="214.0" strokeType="OUTSIDE" strokeWidth="0.0" text="T" textAlignment="CENTER">
+               <font>
+                  <Font name="Impact" size="72.0" />
+               </font>
+               <effect>
+                  <DropShadow>
+                     <color>
+                        <Color red="1.0" green="1.0" blue="1.0" />
+                     </color>
+                  </DropShadow>
+               </effect>
+            </Text>
+            <Text fill="#0045cf" layoutX="64.0" layoutY="225.0" strokeType="OUTSIDE" strokeWidth="0.0" text="E" textAlignment="CENTER">
+               <font>
+                  <Font name="Impact" size="72.0" />
+               </font>
+               <effect>
+                  <DropShadow>
+                     <color>
+                        <Color red="1.0" green="1.0" blue="1.0" />
+                     </color>
+                  </DropShadow>
+               </effect>
+            </Text>
+            <Text fill="#0045cf" layoutX="16.0" layoutY="256.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Travel Experts">
+               <font>
+                  <Font name="Century Gothic" size="16.0" />
+               </font>
+            </Text>
+         </children>
+      </AnchorPane>
+   </left>
+   <top>
+      <HBox alignment="CENTER" minHeight="-Infinity" prefHeight="68.0" prefWidth="624.0" BorderPane.alignment="CENTER">
+         <children>
+            <Region prefHeight="63.0" prefWidth="138.0" />
+            <Text fill="#ff9933" strokeType="OUTSIDE" strokeWidth="0.25" text="Data Manager">
+               <font>
+                  <Font name="Century Gothic Bold" size="28.0" />
+               </font>
+            </Text>
+            <Region prefHeight="63.0" prefWidth="318.0" />
+            <Button fx:id="btnAdd" disable="true" minWidth="-Infinity" mnemonicParsing="false" prefHeight="32.0" prefWidth="57.0" style="-fx-background-radius: 0.85em; -fx-background-color: #00e673;" text="Add">
+               <font>
+                  <Font name="Century Gothic Bold" size="16.0" />
+               </font>
+            </Button>
+            <Region layoutX="285.0" layoutY="10.0" prefHeight="63.0" prefWidth="143.0" />
+            <Button fx:id="btnEdit" disable="true" minWidth="-Infinity" mnemonicParsing="false" prefHeight="32.0" prefWidth="55.0" style="-fx-background-radius: 0.85em; -fx-background-color: #ffa64d;" text="Edit" HBox.hgrow="ALWAYS">
+               <font>
+                  <Font name="Century Gothic Bold" size="16.0" />
+               </font>
+            </Button>
+            <Region prefHeight="63.0" prefWidth="145.0" />
+            <Button fx:id="btnSave" alignment="CENTER" disable="true" minWidth="-Infinity" mnemonicParsing="false" style="-fx-background-radius: 0.85em; -fx-background-color: #4d79ff;" text="Save">
+               <font>
+                  <Font name="Century Gothic Bold" size="16.0" />
+               </font>
+            </Button>
+            <Region prefHeight="63.0" prefWidth="122.0" />
+         </children>
+         <padding>
+            <Insets top="5.0" />
+         </padding>
+      </HBox>
    </top>
 </BorderPane>

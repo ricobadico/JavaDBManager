@@ -41,4 +41,6 @@ public class FormatHelper {
         });
         textField.setTextFormatter(decimalTextFormatter);
     }
+
+
 }
