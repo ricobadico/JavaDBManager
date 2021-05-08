@@ -1,6 +1,6 @@
 package db;
 
-import javafx.collections.ObservableList;
+import javafx.scene.control.Alert;
 
 import java.math.BigDecimal;
 import java.sql.*;
@@ -445,7 +445,7 @@ public class DbManager {
                     // Otherwise we set value based on data type
                     switch (datatype) {
                         case "int":
-                            int value = parseInt(inputValue);
+                            statement.setInt(i, parseInt(inputValue));
                             break;
 
                         case "decimal":
@@ -612,5 +612,39 @@ public class DbManager {
         }
         return datatype;
     }
+
+
+    public ArrayList<String> getNullableColumnsNames(String tableName){
+
+        ArrayList<String> nullableColumns = new ArrayList<>();
+
+        try{
+
+
+        // Create a query getting back all nullable columns in this table
+        String query =
+            "SELECT COLUMN_NAME " +
+            "FROM INFORMATION_SCHEMA.COLUMNS " +
+            "WHERE table_name = '" + tableName + "' " + // not worried about injection here since user has no control over customizing this value
+            "AND IS_NULLABLE = 'NO'";
+        Statement statement = connection.createStatement();
+        ResultSet res = statement.executeQuery(query);
+
+        // Add each record as a key-value pair in the hashmap
+        while(res.next()){
+            nullableColumns.add(res.getString(1));
+        }
+
+        }
+        catch (SQLException e) {
+            Alert a = new Alert(Alert.AlertType.WARNING);
+            a.setTitle("Connection Error");
+            a.setHeaderText("Could not connect to the database. Please reload the application or contact IT.");
+            a.setContentText(e.getMessage());
+            a.showAndWait();
+        }
+        return nullableColumns;
+    }
+
 
 }

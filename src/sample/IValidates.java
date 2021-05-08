@@ -20,18 +20,13 @@ public interface IValidates {
     // TODO: it would be great if validators were stored backwards (stack?) or called backwards for subsequent user alerts
 
 
-    // TODO BUG TODO: (Eric's on it )THIS AWFUL BEAST IS SHARED AMONG ALL OBJECTS THAT IMPLEMENT THE INTERFACE! HOW CAN EACH HAVE ITS OWN?
-    default ArrayList<CustomValidator> getValidators() {
-        if(this.getClass().getName().equals("sample.ValidatingTextField")){
-            return ((ValidatingTextField)this)._validators;
-        }
-        else if(this.getClass().getName().equals("sample.ValidatingDatePicker")){
-            return ((ValidatingDatePicker)this)._validators;
-        }
-        else{
-            return null;
-        }
-    }
+    ArrayList<CustomValidator> getValidators(); // gets list of validators from implementing class
+
+    String getInputAsString(); // gets input string from validating class
+
+    boolean checkIfFirstBlur(); // boolean that tracks whether onBlur has fired (to prevent recursion)
+
+    void setFirstBlur(boolean val);
 
     default void addValidator(CustomValidator validator){
         getValidators().add(validator);
@@ -55,15 +50,13 @@ public interface IValidates {
 
             // Add validation check as an on-blur listener for the input
             ((Control)this).focusedProperty().addListener((observableValue, aBoolean, t1) -> {
-                if (observableValue.getValue() == false) {
+                if (observableValue.getValue() == false && this.checkIfFirstBlur() == true) {
+
+                    this.setFirstBlur(false);
 
                     // A little messy here... we always want to pass the input's value as a string when validating,
                     // but depending on the input given need to grab that differently
-                    String valueToValidate;
-                    if (connection.findDataType(tableName, columnName).equals("datetime")) // getValue() grabs from date picker
-                        valueToValidate = ((DatePicker) this).getValue().toString();
-                    else // we can use getText() to grab from textfields
-                        valueToValidate = ((ValidatingTextField) this).getText();
+                    String valueToValidate = this.getInputAsString();
 
                     // Now, we use the custom validation
 
@@ -77,20 +70,22 @@ public interface IValidates {
                     // Run all validation
                     for (CustomValidator vldtr : getValidators()) {
                         try {
-                            boolean isValid = vldtr.checkValidity(args);
+                            boolean isValid = vldtr.checkValidity(args, (Control) this);
                             // if validation fails, it throws an exception with a useful message we can capture in an alert
                         } catch(SQLException e){
                             Alert a = new Alert(Alert.AlertType.WARNING);
                             a.setTitle("Validation Error");
                             a.setHeaderText("Special validation error for " + columnName + ".");
                             a.setContentText(e.getMessage());
-                            a.show();
+                            a.showAndWait();
 
                             // Highlight the field
                             ((Control) this).requestFocus();
                             System.out.println("Control class name: " + this.getClass().getName());
                             if (this.getClass().getName().equals("ValidatingTextField"))
                                 ((ValidatingTextField) this).selectAll();
+
+                            setFirstBlur(true);
                         }
                     }
                 }
@@ -125,23 +120,23 @@ public interface IValidates {
             // If any validation method fails, allPassed fails.
             try {
 
-                if(vldtr.checkValidity(args) == false) {
+                if(vldtr.checkValidity(args, (Control) this) == false) {
                     allPassed = false;
                     // we could break out at this point, but keeping it running will trigger any additional failure messages
                 }
             } catch (SQLException e) {
                 allPassed = false;
-//                Alert a = new Alert(Alert.AlertType.WARNING);
-//                a.setTitle("Validation Error");
-//                a.setHeaderText("Special validation error for " + args.get("colName") + ".");
-//                a.setContentText(e.getMessage());
-//                a.show();
-//
-//                // Highlight the field
-//                ((Control)this).requestFocus();
-//                System.out.println("Control class name: " + this.getClass().getName());
-//                if (this.getClass().getName().equals("ValidatingTextField"))
-//                    ((ValidatingTextField) this).selectAll();
+                Alert a = new Alert(Alert.AlertType.WARNING);
+                a.setTitle("Validation Error");
+                a.setHeaderText("Special validation error for " + columnName + ".");
+                a.setContentText(e.getMessage());
+                a.showAndWait();
+
+                // Highlight the field
+                ((Control)this).requestFocus();
+                System.out.println("Control class name: " + this.getClass().getName());
+                if (this.getClass().getName().equals("ValidatingTextField"))
+                    ((ValidatingTextField) this).selectAll();
             }
         }
 

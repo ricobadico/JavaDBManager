@@ -1,7 +1,12 @@
 package db;
 
+import javafx.scene.control.Control;
+import javafx.scene.control.DatePicker;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -35,18 +40,35 @@ public class Packages implements ITableEntity{
          */
         // TODO: we need to make some custom validation for certain classes. This has to wait however for Eric's IValidates fix, broken right now...
 
-        // Validator for AgencyID: checks to ensure foreign key constraints met (AgencyID exists in other column)
-//        columnValidators.put("AgencyId", new CustomValidator() {
-//            @Override
-//            public boolean checkValidity(HashMap<String, String> args) throws SQLException {
-//                DbManager db = new DbManager();
-//                boolean isValid = db.columnIntValueExists("Agencies", "AgencyId", Integer.parseInt(args.get("value")));
-//                if(isValid == false) {
-//                    throw new SQLException("The provided agency ID does not exist in the database");
-//                }
-//                return true;
-//            }
-//        });
+        // Validator for PkgEndDate - must be after PkgStartDate
+        columnValidators.put("PkgEndDate", new CustomValidator() {
+            @Override
+            public boolean checkValidity(HashMap<String, String> args, Control colInput) throws SQLException {
+
+                try {
+                // Get endDate input value
+                LocalDate endDate = LocalDate.parse(args.get("value"));
+
+                //get StartDate input value - you can do this by getting a ref to the scene from the input, then searching for the ID of another input
+                DatePicker startDateInput = (DatePicker) colInput.getScene().lookup("#inputPkgStartDate");
+                LocalDate startDate = startDateInput.getValue();
+
+                // Ensure that end date isn't the same day or before Start date
+                if( ! endDate.isAfter(startDate)) {
+                    throw new SQLException("Package End date must be after Package Start Date");
+                }
+
+                // If above check passed, we're good!
+                return true;
+
+            // This catch exists to manage when start date is blank. In that case, we have nothing to compare,
+            // so this check can actually return true (we can leave not-null validation to a separate validator, if needed)
+             } catch (NullPointerException e){
+                    System.out.println("Skipping StartDate<EndDate validation with null value");
+                    return true;
+                }
+            }
+        });
 
 
         /**

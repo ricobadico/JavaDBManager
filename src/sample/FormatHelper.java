@@ -15,10 +15,11 @@ public class FormatHelper {
 
         // Remove extra characters from formatted input string to get at the actual value (if any exist)
         String cleanInput = colInput.getText().replaceAll(",", "").replaceAll("$", "");
-        // Re-format the value and set the input text to it
-        colInput.setText(myFormat.format(Double.valueOf(cleanInput)));
-
+        // If not empty, re-format the value and set the input text to it
+        if (!cleanInput.isBlank()) {
+            colInput.setText(myFormat.format(Double.valueOf(cleanInput)));
         }
+    }
 
 
     // Thanks to https://www.programcreek.com/java-api-examples/?api=javafx.scene.control.TextFormatter
