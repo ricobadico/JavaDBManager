@@ -212,10 +212,10 @@ public class Controller {
         // Create the columns needed for this table's data
         for (String colName: columnNames) { // for each column:
 
-            Label columnLabel = new Label(colName); // create a new label with that name
+            Label columnLabel = new Label(colName + ":"); // create a new label with that name
 
             // Update to use the column's display label (if defined in the class)
-            if(formattedColumnLabels != null) {
+            if(formattedColumnLabels != null && formattedColumnLabels.get(colName) != null) {
                 // Find the formatted label associated with the actual db column name (in colName variable)
                 columnLabel.setText(formattedColumnLabels.get(colName));
             }
