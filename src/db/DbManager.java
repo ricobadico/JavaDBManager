@@ -421,7 +421,6 @@ public class DbManager {
 
             // Now we set parameters, which will require parsing each record value according to its database type
             for (String colName : colNames) {
-                System.out.println("Entered data type for loop");
                 currentColumn = colName;
 
                 // First, we need to determine what type the current value should be parsed to
@@ -429,7 +428,6 @@ public class DbManager {
 
                 // Put the current string value in a variable for shorthand
                 String inputValue = recordData.get(colName);
-                System.out.println(dbColumnDataType + inputValue);
                 // For now we just need the data type name, not the length.
                 String[] dataTypebits =  dbColumnDataType.split("\\("); // this breaks up eg "decimal(19,4)" after the datatype name
                 String datatype = dataTypebits[0]; // the name of the datatype

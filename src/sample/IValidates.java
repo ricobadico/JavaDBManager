@@ -81,7 +81,6 @@ public interface IValidates {
 
                             // Highlight the field
                             ((Control) this).requestFocus();
-                            System.out.println("Control class name: " + this.getClass().getName());
                             if (this.getClass().getName().equals("ValidatingTextField"))
                                 ((ValidatingTextField) this).selectAll();
 
@@ -134,7 +133,6 @@ public interface IValidates {
 
                 // Highlight the field
                 ((Control)this).requestFocus();
-                System.out.println("Control class name: " + this.getClass().getName());
                 if (this.getClass().getName().equals("ValidatingTextField"))
                     ((ValidatingTextField) this).selectAll();
             }

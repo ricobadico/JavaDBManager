@@ -25,6 +25,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import db.DbManager;
 
+import static sample.ControllerHelper.makeWarningAlert;
+
 public class Controller {
 
     // Member variables
@@ -164,7 +166,6 @@ public class Controller {
         // Class.forName calls an exception if the class doesn't exist.
         } catch (ClassNotFoundException e) {
             predefinedClassFile = null;
-            System.out.println("Using programmatic defaults");
         }
 
         // Get record names for combo box
@@ -389,13 +390,17 @@ public class Controller {
                         DecimalFormat myFormat = new DecimalFormat("$###,##0.00");
                         //Format as currency
                         double dataAsDecimal = Double.valueOf((data.replaceAll(",","").replaceAll("\\$","")));
-                        System.out.println("Decimal: " + dataAsDecimal);
                         ((ValidatingTextField) input).setText(myFormat.format(dataAsDecimal));
                     }
                     // Else if date
                     else if(connection.findDataType(currentTable, colName).equals("datetime")){
+                        if(data == ""){
+                            ((ValidatingDatePicker)input).setValue(null);
+                        }
+                        else{
                         LocalDate timeData = LocalDateTime.parse(data).toLocalDate(); // convert string to date
                         ((ValidatingDatePicker)input).setValue(timeData); // set it as default value for datepicker
+                        }
                     }
                     // If anything not needing special formatting (varchar/string, int)
                     else {
@@ -406,11 +411,7 @@ public class Controller {
                 btnEdit.setDisable(false);
 
             } catch (SQLException e) {
-                Alert a = new Alert(Alert.AlertType.WARNING);
-                a.setTitle("Connection Issue");
-                a.setHeaderText("We can't seem to connect to the database!");
-                a.setContentText(e.getMessage());
-                a.showAndWait();
+                makeWarningAlert("Connection Issue","We can't seem to connect to the database!", e.getMessage());
             }
         }
 
@@ -427,11 +428,9 @@ public class Controller {
             // Figure out which column is PK
             String pkCol = connection.getPKColumnForTable(currentTable);
             String IDForPKTextBox = "input" + pkCol; // the id of the pk textbox takes this form
-            System.out.println(pkCol);
 
             // Enable all text fields (except PK)
             for (Node textfield : vboxInputs.getChildren()) {
-                System.out.println(textfield.getId());
                 if( ! textfield.getId().equals(IDForPKTextBox)) { // check if ID corresponds to pk column
                     textfield.setDisable(false);
                 }
@@ -443,11 +442,7 @@ public class Controller {
             // Enable save button
             btnSave.setDisable(false);
         }catch (SQLException e){
-            Alert a = new Alert(Alert.AlertType.WARNING);
-            a.setTitle("Connection Issue");
-            a.setHeaderText("We can't seem to connect to the database!");
-            a.setContentText(e.getMessage());
-            a.showAndWait();
+            makeWarningAlert("Connection Issue","We can't seem to connect to the database!", e.getMessage());
         }
 
     }
@@ -465,11 +460,9 @@ public class Controller {
             // Figure out which column is PK
             String pkCol = connection.getPKColumnForTable(currentTable);
             String IDForPKTextBox = "input" + pkCol; // the id of the pk textbox takes this form
-            System.out.println(pkCol);
             // Enable all text fields (except PK)
             for (Node child : vboxInputs.getChildren()) {
                 Control tf = (Control) child;
-                //System.out.println(textfield.getId());
                 if( ! tf.getId().equals(IDForPKTextBox)) { // check if ID corresponds to pk column
                     tf.setDisable(false);
                 }
@@ -484,7 +477,6 @@ public class Controller {
                 }
             }
             int highestPK = connection.highestPKValueForTable(currentTable, pkCol);
-            System.out.println(highestPK);
             // Disable edit button
             btnEdit.setDisable(true);
 
@@ -494,11 +486,7 @@ public class Controller {
             // Enable save button
             btnSave.setDisable(false);
         }catch (SQLException e){
-            Alert a = new Alert(Alert.AlertType.WARNING);
-            a.setTitle("Connection Issue");
-            a.setHeaderText("We can't seem to connect to the database!");
-            a.setContentText(e.getMessage());
-            a.showAndWait();
+            makeWarningAlert("Connection Issue","We can't seem to connect to the database!", e.getMessage());
         }
 
     }
@@ -540,14 +528,12 @@ public class Controller {
             // Special case to handle if the current column is a primary key
             if (( ! connection.columnPrimaryKeyAutoIncrements(currentTable, pkColumnName))
             && columnName.equals(pkColumnName)) {
-                System.out.println("Current column is table primary key column");
                 int newPKValue = connection.highestPKValueForTable(currentTable, pkColumnName) + 1;
                 input = String.valueOf(newPKValue);
 
             // Otherwise, run function to pull out value
             } else {
-                System.out.println("Table PK autoincrements");
-
+                // Pk autoincrements
                 input = getInput(connection, i, columnName);
             }
 
@@ -559,7 +545,7 @@ public class Controller {
             // In the event any of the validators attached to the input fail, we leave the Update method.
             // (the inner validate methods will take care of alerting the user)
             if(!inputControl.validate(currentTable, columnName, input)){
-                return;
+                System.out.println("egg" + currentTable + " " + columnName + " " + input);
             }
         }
 
@@ -604,11 +590,7 @@ public class Controller {
         }
         // In the event the SQL fails, pop up an alert
         catch (SQLException e) {
-            Alert a = new Alert(Alert.AlertType.WARNING);
-            a.setTitle("Bad Update");
-            a.setHeaderText("Something went wrong!");
-            a.setContentText(e.getMessage());
-            a.showAndWait();
+            makeWarningAlert("Bad Update","Something went wrong!", e.getMessage());
         }
     }
 
@@ -695,13 +677,11 @@ public class Controller {
         }
         // In the event the SQL fails, pop up an alert
         catch (SQLException e) {
-            Alert a = new Alert(Alert.AlertType.WARNING);
-            a.setTitle("Bad Update");
-            a.setHeaderText("Something went wrong!");
-            a.setContentText(e.getMessage());
-            a.showAndWait();
+            makeWarningAlert("Bad Update","Something went wrong!", e.getMessage());
         }
     }
+
+
 
     /**
      * Grabs the input value of a textbox based on its datatype.
@@ -733,7 +713,6 @@ public class Controller {
             else {
                 // Otherwise, remove extra characters
                 input = ((input.replaceAll(",", "")).replaceAll("\\$", ""));
-                System.out.println("DECIMAL: " + input);
             }
         // Varchar/Int/ anything else
         } else {

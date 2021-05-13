@@ -7,6 +7,8 @@ import javafx.scene.control.TextField;
 
 import java.sql.SQLException;
 
+import static sample.ControllerHelper.makeWarningAlert;
+
 public class ValidationManager {
 
     public static boolean isInt(String colName, TextField colInput) {
@@ -32,11 +34,7 @@ public class ValidationManager {
 
             // If the parse failed, bring up message to admonish the user's foolery
         } catch (NumberFormatException e){
-            Alert a = new Alert(Alert.AlertType.WARNING);
-            a.setTitle("Validation Error");
-            a.setHeaderText("Please provide a number for " + colName + ".");
-            a.setContentText(e.getMessage());
-            a.showAndWait();
+            makeWarningAlert("Validation Error","Please provide a number for " + colName + ".", e.getMessage());
 
             // Highlight the field
             colInput.requestFocus();
@@ -64,23 +62,15 @@ public class ValidationManager {
             constraintMet = connection.columnStringValueExists(foreignKeyTable, foreignKeyColumn, value);
         } catch (SQLException e) {
             // Throws an error if false, so we showAndWait a message instead
-            e.printStackTrace();
-            Alert a = new Alert(Alert.AlertType.WARNING);
-            a.setTitle("Database Error");
-            a.setHeaderText("Something went wrong connecting to the database.");
-            a.setContentText(e.getMessage());
-            a.showAndWait();
+            makeWarningAlert("Database Error","Something went wrong connecting to the database.", e.getMessage());
 
             // Highlight the field
             colInput.requestFocus();
             colInput.selectAll();
         }
         if(constraintMet == false){
-            Alert a = new Alert(Alert.AlertType.WARNING);
-            a.setTitle("Validation Error");
-            a.setHeaderText("Please provide a valid value for " + colName + ".");
-            a.setContentText("Value must be found in the " + foreignKeyColumn + " column in " + foreignKeyTable + ".");
-            a.showAndWait();
+            makeWarningAlert("Validation Error","Please provide a valid value for " + colName + ".",
+                    "Value must be found in the " + foreignKeyColumn + " column in " + foreignKeyTable + ".");
 
             // Highlight the field
             colInput.requestFocus();
@@ -104,11 +94,7 @@ public class ValidationManager {
                 return true;
             // If the parse failed, bring up message to admonish the user's foolery
         } catch (Exception e){
-            Alert a = new Alert(Alert.AlertType.WARNING);
-            a.setTitle("Validation Error");
-            a.setHeaderText("Please provide a number for " + colName + ".");
-            a.setContentText(e.getMessage());
-            a.showAndWait();
+            makeWarningAlert("Validation Error","Please provide a number for " + colName + ".", e.getMessage());
 
             // Highlight the field
             colInput.requestFocus();
@@ -143,11 +129,7 @@ public class ValidationManager {
 
             // If the parse failed, bring up message to admonish the user's foolery
         } catch (NumberFormatException e){
-            Alert a = new Alert(Alert.AlertType.WARNING);
-            a.setTitle("Validation Error");
-            a.setHeaderText("Please provide a number for " + colName + ".");
-            a.setContentText(e.getMessage());
-            a.showAndWait();
+            makeWarningAlert("Validation Error","Please provide a number for " + colName + ".", e.getMessage());
 
             // Highlight the field
             colInput.requestFocus();
