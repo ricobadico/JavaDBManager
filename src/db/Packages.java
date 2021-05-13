@@ -38,7 +38,7 @@ public class Packages implements ITableEntity{
          * the value is a new Custom Validator object that overwrites the checkValidity method
          * to be whatever validation you want to add. The validation should return true or throw an exception to be caught.
          */
-        // TODO: we need to make some custom validation for certain classes. This has to wait however for Eric's IValidates fix, broken right now...
+
 
         // Validator for PkgEndDate - must be after PkgStartDate
         columnValidators.put("PkgEndDate", new CustomValidator() {

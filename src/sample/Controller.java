@@ -215,7 +215,7 @@ public class Controller {
         // Create the columns needed for this table's data
         for (String colName: columnNames) { // for each column:
 
-            // Format the detail label a bit to add spaces
+            // Format the detail label a bit to add space
             String tidierDefaultLabel = FormatHelper.getTidierDefaultLabel(colName);
 
             Label columnLabel = new Label(tidierDefaultLabel); // create a new label with that name
@@ -503,6 +503,7 @@ public class Controller {
     }
 
     private void saveInsert() throws SQLException {
+        boolean validationGate = true;
         System.out.println("Start of add operation");
         DbManager connection = new DbManager();
         //Get primary key column to determine primary key later
@@ -547,8 +548,14 @@ public class Controller {
             // In the event any of the validators attached to the input fail, we leave the Update method.
             // (the inner validate methods will take care of alerting the user)
             if(!inputControl.validate(currentTable, columnName, input)){
+                validationGate = false;
                 System.out.println("error test" + currentTable + " " + columnName + " " + input);
             }
+        }
+
+        // If any validation failed, we stop
+        if(validationGate == false){
+            return;
         }
 
         try {
@@ -601,7 +608,7 @@ public class Controller {
      * TODO: We could consider concurrency
      */
     private void saveUpdates() {
-
+        boolean validationGate = true;
         // Create a new connection
         DbManager connection = new DbManager();
         //Get primary key column to determine primary key later
@@ -632,9 +639,16 @@ public class Controller {
             // In the event any of the validators attached to the input fail, we leave the Update method.
             // (the inner validate methods will take care of alerting the user)
             if(!inputControl.validate(currentTable, columnName, input)){
+                validationGate = false;
                 System.out.println("error test" + currentTable + " " + columnName + " " + input);
             }
         }
+
+        // If any validation failed, we stop
+        if(validationGate == false){
+            return;
+        }
+
         //Find and store the value of the primary key for the row being editted
         int pkValue = Integer.parseInt(textInputs.get(pkColumnName));
         //int selectedIndex = cbxRecordList.getSelectionModel().getSelectedIndex();

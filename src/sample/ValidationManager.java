@@ -121,13 +121,14 @@ public class ValidationManager {
     public static boolean isDecimal(String colName, ValidatingTextField colInput) {
         // Get value
         String value = colInput.getText();
+        String cleanVal = value.replaceAll(",", "").replaceAll("\\$", "");
 
         // If null, we don't want to run test, technically pass (let a nullable test handle that)
-        if (value == null || value.isEmpty()) return true;
+        if (cleanVal == null || value.isEmpty()) return true;
 
         // Attempt to parse as an int
         try {
-            double val = Double.parseDouble(value);
+            double val = Double.parseDouble(cleanVal);
 
             // By default, negatives are allowed, but we can prompt the user to be safe
             if (val < 0) {
