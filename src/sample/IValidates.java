@@ -115,6 +115,7 @@ public interface IValidates {
         }};
 
         // Iterate through validators
+        ArrayList<CustomValidator> validators = getValidators();
         for (CustomValidator vldtr: getValidators()) {
             // If any validation method fails, allPassed fails.
             try {
@@ -125,16 +126,6 @@ public interface IValidates {
                 }
             } catch (SQLException e) {
                 allPassed = false;
-                Alert a = new Alert(Alert.AlertType.WARNING);
-                a.setTitle("Validation Error");
-                a.setHeaderText("Special validation error for " + columnName + ".");
-                a.setContentText(e.getMessage());
-                a.showAndWait();
-
-                // Highlight the field
-                ((Control)this).requestFocus();
-                if (this.getClass().getName().equals("ValidatingTextField"))
-                    ((ValidatingTextField) this).selectAll();
             }
         }
 

@@ -265,7 +265,7 @@ public class Controller {
             // These get called when the user leaves the input field, and are checked before inserting/updating
 
             // Add non-null validation if applicable to this column
-            if (nullableColumns.contains(currentTable)){
+            if (nullableColumns.contains(colName)){
                 ((IValidates) colInput).addValidator(new CustomValidator() {
                         @Override
                         public boolean checkValidity(HashMap<String, String> args, Control colInput) throws SQLException {
@@ -625,7 +625,7 @@ public class Controller {
             // Add pair to arraylist
             textInputs.put(columnName, input);
 
-            // Check validation
+            // Check validation todo align with insert
             IValidates inputControl = (IValidates) vboxInputs.getChildren().get(i); // grab ref to input
             // In the event any of the validators attached to the input fail, we leave the Update method.
             // (the inner validate methods will take care of alerting the user)

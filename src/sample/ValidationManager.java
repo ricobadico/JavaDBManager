@@ -87,7 +87,7 @@ public class ValidationManager {
         // Get value
         String value = ((IValidates)colInput).getInputAsString();
 
-            if(value == null) {
+            if(value.isBlank()) {
                 throw new Exception(colName + " cannot be null.");
             }
             else
