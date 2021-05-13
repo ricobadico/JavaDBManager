@@ -43,5 +43,18 @@ public class FormatHelper {
         textField.setTextFormatter(decimalTextFormatter);
     }
 
+    public static String getTidierDefaultLabel(String colName) {
+        String tidierDefaultLabel = "";
+        for (int i = 0; i < colName.length(); i++){
+            char c = colName.charAt(i);
+            if(i != 0 && Character.isUpperCase(c)){
+                tidierDefaultLabel += " ";
+            }
+            tidierDefaultLabel += c;
+        }
+        tidierDefaultLabel += ":";
+        return tidierDefaultLabel;
+    }
+
 
 }

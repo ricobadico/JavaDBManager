@@ -94,9 +94,11 @@ public class Controller {
                     // So, we only populate data when a non-null selection is chosen.
                     if (chosenItem != null) {
 
+                        // TODO and its a big one: get this as a string, then make populateRecordSelection take a string argument instead of int.
+                        // TODO Then, use table combobox value to determine what type of value that pk should be, overload getRecords to take any datatype pk
+                        // TODO In addition, set up working for tables with multiple pk
                         // Split item on delimiter between ID and rest of name, grab the ID (in first index), parse to int
-                        int chosenID = Integer.parseInt(
-                                chosenItem.split(":")[0]);
+                        int chosenID = Integer.parseInt(chosenItem.split(":")[0]);
                         populateRecordSelection(chosenID);
                     }
                 }
@@ -213,7 +215,10 @@ public class Controller {
         // Create the columns needed for this table's data
         for (String colName: columnNames) { // for each column:
 
-            Label columnLabel = new Label(colName + ":"); // create a new label with that name
+            // Format the detail label a bit to add spaces
+            String tidierDefaultLabel = FormatHelper.getTidierDefaultLabel(colName);
+
+            Label columnLabel = new Label(tidierDefaultLabel); // create a new label with that name
 
             // Update to use the column's display label (if defined in the class)
             if(formattedColumnLabels != null && formattedColumnLabels.get(colName) != null) {
@@ -354,8 +359,6 @@ public class Controller {
     }
 
 
-
-
     /**
      * Uses a new selection from the Records combo box to update the application:
      * - Current data for each field in the record are displayed in corresponding text boxes.
@@ -476,7 +479,6 @@ public class Controller {
                     ((ValidatingDatePicker) tf).setValue(LocalDate.now());
                 }
             }
-            int highestPK = connection.highestPKValueForTable(currentTable, pkCol);
             // Disable edit button
             btnEdit.setDisable(true);
 
@@ -545,7 +547,7 @@ public class Controller {
             // In the event any of the validators attached to the input fail, we leave the Update method.
             // (the inner validate methods will take care of alerting the user)
             if(!inputControl.validate(currentTable, columnName, input)){
-                System.out.println("egg" + currentTable + " " + columnName + " " + input);
+                System.out.println("error test" + currentTable + " " + columnName + " " + input);
             }
         }
 
@@ -625,14 +627,13 @@ public class Controller {
             // Add pair to arraylist
             textInputs.put(columnName, input);
 
-            // Check validation todo align with insert
+            // Check validation
             IValidates inputControl = (IValidates) vboxInputs.getChildren().get(i); // grab ref to input
             // In the event any of the validators attached to the input fail, we leave the Update method.
             // (the inner validate methods will take care of alerting the user)
             if(!inputControl.validate(currentTable, columnName, input)){
-                return;
+                System.out.println("error test" + currentTable + " " + columnName + " " + input);
             }
-
         }
         //Find and store the value of the primary key for the row being editted
         int pkValue = Integer.parseInt(textInputs.get(pkColumnName));

@@ -612,13 +612,20 @@ public class DbManager {
 
     }
 
+    // todo: needs to work for non-int pk's
     public int highestPKValueForTable(String tableName, String pkColName) throws SQLException {
-        String query = "SELECT MAX(" + pkColName + ") FROM " + tableName;
-        PreparedStatement statement = connection.prepareStatement(query);
-        // Run statement
-        ResultSet res = statement.executeQuery();
-        res.next();
-        return Integer.parseInt(res.getString(1));
+        try {
+            String query = "SELECT MAX(" + pkColName + ") FROM " + tableName;
+            PreparedStatement statement = connection.prepareStatement(query);
+            // Run statement
+            ResultSet res = statement.executeQuery();
+            res.next();
+            return Integer.parseInt(res.getString(1));
+        }
+        catch (IllegalArgumentException e){
+            System.out.println("Error: system currently doesn't handle non-int PKs. A to-do");
+            return -1;
+        }
     }
 
     public String findDataType(String table, String col) {
