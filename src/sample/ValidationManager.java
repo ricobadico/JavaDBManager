@@ -6,6 +6,7 @@ import javafx.scene.control.Control;
 import javafx.scene.control.TextField;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import static sample.ControllerHelper.makeWarningAlert;
 
@@ -60,23 +61,34 @@ public class ValidationManager {
         boolean constraintMet = false;
         try {
             constraintMet = connection.columnStringValueExists(foreignKeyTable, foreignKeyColumn, value);
+
+
+            // Highlight the field
+            colInput.requestFocus();
+            colInput.selectAll();
+
+            if (constraintMet == false) {
+                // Get possible values
+                ArrayList<String> possibleVals = connection.getColumnValues(foreignKeyTable, foreignKeyColumn);
+                String listofPVals = "";
+                for (String val : possibleVals) {
+                    listofPVals += val + ", ";
+                }
+                listofPVals = listofPVals.substring(0, listofPVals.length()-2);
+
+                makeWarningAlert("Validation Error", "Please provide a valid value for " + colName + ".",
+                        "Value must be found in the " + foreignKeyColumn + " column in " + foreignKeyTable + ". Possible values include:\n" + listofPVals);
+
+                // Highlight the field
+                colInput.requestFocus();
+                colInput.selectAll();
+            }
+            return constraintMet;
         } catch (SQLException e) {
             // Throws an error if false, so we showAndWait a message instead
-            makeWarningAlert("Database Error","Something went wrong connecting to the database.", e.getMessage());
-
-            // Highlight the field
-            colInput.requestFocus();
-            colInput.selectAll();
+            makeWarningAlert("Database Error", "Something went wrong connecting to the database.", e.getMessage());
+            return false;
         }
-        if(constraintMet == false){
-            makeWarningAlert("Validation Error","Please provide a valid value for " + colName + ".",
-                    "Value must be found in the " + foreignKeyColumn + " column in " + foreignKeyTable + ".");
-
-            // Highlight the field
-            colInput.requestFocus();
-            colInput.selectAll();
-        }
-        return constraintMet;
     }
 
     public static boolean isNotNull(Control colInput, String colName) {

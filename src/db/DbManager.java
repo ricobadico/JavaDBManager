@@ -331,43 +331,48 @@ public class DbManager {
 
                 // Put the current string value in a variable for shorthand
                 String inputValue = recordData.get(colName);
+                if (inputValue == null || inputValue.isBlank()){
+                    statement.setString(i, null);
+                }
+                else {
 
-                // For now we just need the data type name, not the length.
-                String[] dataTypebits =  dbColumnDataType.split("\\("); // this breaks up eg "decimal(19,4)" after the datatype name
-                String datatype = dataTypebits[0]; // the name of the datatype
-                String lengthData; //used below to validate length
+                    // For now we just need the data type name, not the length.
+                    String[] dataTypebits = dbColumnDataType.split("\\("); // this breaks up eg "decimal(19,4)" after the datatype name
+                    String datatype = dataTypebits[0]; // the name of the datatype
+                    String lengthData; //used below to validate length
 
-                // With the data type, we can determine what parsing action needs to be done to set the param for this column
-                // This is not exhaustive but should work for our purposes
+                    // With the data type, we can determine what parsing action needs to be done to set the param for this column
+                    // This is not exhaustive but should work for our purposes
 
-                switch (datatype){
-                    case "int":
+                    switch (datatype) {
+                        case "int":
 
-                        int value = parseInt(inputValue);
-                        statement.setInt(i, value);
-                        break;
+                            int value = parseInt(inputValue);
+                            statement.setInt(i, value);
+                            break;
 
-                    case "decimal":
-                        statement.setBigDecimal(i, new BigDecimal(inputValue));
-                        break;
+                        case "decimal":
+                            statement.setBigDecimal(i, new BigDecimal(inputValue));
+                            break;
 
-                    case "datetime":
-                        statement.setDate(i, Date.valueOf(LocalDate.parse(inputValue)));
-                        break;
+                        case "datetime":
+                            statement.setDate(i, Date.valueOf(LocalDate.parse(inputValue)));
+                            break;
 
-                    case "varchar":
+                        case "varchar":
 
-                        // Validate length
-                        lengthData=  dataTypebits[1].split("\\)")[0];
-                        int maxLength = parseInt(lengthData);
-                        if(inputValue != null && inputValue.length() > maxLength){
-                            throw new SQLException(colName +  " exceeds the max number of characters");
-                        }
+                            // Validate length
+                            lengthData = dataTypebits[1].split("\\)")[0];
+                            int maxLength = parseInt(lengthData);
+                            if (inputValue != null && inputValue.length() > maxLength) {
+                                throw new SQLException(colName + " exceeds the max number of characters");
+                            }
 
-                        statement.setString(i, inputValue);
+                            statement.setString(i, inputValue);
 
-                    default: // notably for "varchar"
-                        statement.setString(i, inputValue);
+                        default: // notably for "varchar"
+                            statement.setString(i, inputValue);
+                    }
                 }
 
                 i++; // add to the counter before we go to the next column of data
@@ -565,13 +570,29 @@ public class DbManager {
         ResultSet res = statement.executeQuery();
 
         // If any values returned (ie if there is a .next() to go to), return true
-        if (res.next())
+        if (res.next()) {
             return true;
+        }
 
             // If no records, return false
         else
             return false;
 
+    }
+
+    public ArrayList<String> getColumnValues(String tableName, String columnName) throws SQLException {
+
+        ArrayList<String> possibleVals = new ArrayList<>();
+
+        // Create sql query with parameter for value, catting in injection-safe parameters
+        String query = "SELECT " + columnName + " FROM " + tableName;
+        PreparedStatement statement = connection.prepareStatement(query);
+        // Run statement
+        ResultSet res = statement.executeQuery();
+        while (res.next()){
+            possibleVals.add(res.getString(1));
+        }
+        return possibleVals;
     }
 
     public boolean columnPrimaryKeyAutoIncrements(String tableName, String columnName) throws SQLException {
