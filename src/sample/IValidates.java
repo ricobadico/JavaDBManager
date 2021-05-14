@@ -32,6 +32,7 @@ public interface IValidates {
         getValidators().add(validator);
     }
 
+    // TODO: this is only triggering once! Why?
     default void addOnBlurValidation(String tableName, String columnName){
 
         DbManager connection = new DbManager();
@@ -50,7 +51,8 @@ public interface IValidates {
 
             // Add validation check as an on-blur listener for the input
             ((Control)this).focusedProperty().addListener((observableValue, aBoolean, t1) -> {
-                if (observableValue.getValue() == false && this.checkIfFirstBlur() == true) {
+                if (!t1 && this.checkIfFirstBlur() == true) {
+
 
                     this.setFirstBlur(false);
 
@@ -72,22 +74,17 @@ public interface IValidates {
                         try {
                             boolean isValid = vldtr.checkValidity(args, (Control) this);
                             // if validation fails, it throws an exception with a useful message we can capture in an alert
-                        } catch(SQLException e){
+                        } catch (SQLException e) {
                             Alert a = new Alert(Alert.AlertType.WARNING);
                             a.setTitle("Validation Error");
                             a.setHeaderText("Special validation error for " + columnName + ".");
                             a.setContentText(e.getMessage());
                             a.showAndWait();
 
-                            // Highlight the field
-                            ((Control) this).requestFocus();
-                            if (this.getClass().getName().equals("ValidatingTextField"))
-                                ((ValidatingTextField) this).selectAll();
-
-                            setFirstBlur(true);
                         }
                     }
-                }
+                            setFirstBlur(true);
+            }
             });
         }
     }

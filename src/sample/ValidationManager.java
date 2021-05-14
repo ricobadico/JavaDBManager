@@ -37,10 +37,6 @@ public class ValidationManager {
         } catch (NumberFormatException e){
             makeWarningAlert("Validation Error","Please provide a number for " + colName + ".", e.getMessage());
 
-            // Highlight the field
-            colInput.requestFocus();
-            colInput.selectAll();
-
             // Return false
             return false;
 
@@ -63,10 +59,6 @@ public class ValidationManager {
             constraintMet = connection.columnStringValueExists(foreignKeyTable, foreignKeyColumn, value);
 
 
-            // Highlight the field
-            colInput.requestFocus();
-            colInput.selectAll();
-
             if (constraintMet == false) {
                 // Get possible values
                 ArrayList<String> possibleVals = connection.getColumnValues(foreignKeyTable, foreignKeyColumn);
@@ -79,9 +71,6 @@ public class ValidationManager {
                 makeWarningAlert("Validation Error", "Please provide a valid value for " + colName + ".",
                         "Value must be found in the " + foreignKeyColumn + " column in " + foreignKeyTable + ". Possible values include:\n" + listofPVals);
 
-                // Highlight the field
-                colInput.requestFocus();
-                colInput.selectAll();
             }
             return constraintMet;
         } catch (SQLException e) {
@@ -93,29 +82,14 @@ public class ValidationManager {
 
     public static boolean isNotNull(Control colInput, String colName) {
 
-        // Attempt to parse as an int
-        try {
+            // Get value
+            String value = ((IValidates) colInput).getInputAsString();
 
-        // Get value
-        String value = ((IValidates)colInput).getInputAsString();
-
-            if(value.isBlank()) {
-                throw new Exception(colName + " cannot be null.");
-            }
-            else
+            if (value.isBlank()) {
+                makeWarningAlert("Validation Error", "Please provide a value for " + colName + ".", colName + " cannot be null.");
+                return false;
+            } else
                 return true;
-            // If the parse failed, bring up message to admonish the user's foolery
-        } catch (Exception e){
-            makeWarningAlert("Validation Error","Please provide a number for " + colName + ".", e.getMessage());
-
-            // Highlight the field
-            colInput.requestFocus();
-            if (colInput instanceof ValidatingTextField)
-                ((ValidatingTextField)colInput).selectAll();
-
-            // Return false
-            return false;
-        }
     }
 
     public static boolean isDecimal(String colName, ValidatingTextField colInput) {
@@ -144,9 +118,6 @@ public class ValidationManager {
         } catch (NumberFormatException e){
             makeWarningAlert("Validation Error","Please provide a number for " + colName + ".", e.getMessage());
 
-            // Highlight the field
-            colInput.requestFocus();
-            colInput.selectAll();
 
             // Return false
             return false;
