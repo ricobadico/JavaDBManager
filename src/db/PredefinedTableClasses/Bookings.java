@@ -1,11 +1,15 @@
-package db;
+package db.PredefinedTableClasses;
+
+import db.CustomValidator;
+import db.DbManager;
+import db.ITableEntity;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class Bookings implements ITableEntity{
+public class Bookings implements ITableEntity {
 
     public static HashMap<String, String> GetColumnLabels(){
 

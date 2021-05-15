@@ -1,5 +1,8 @@
-package db;
+package db.PredefinedTableClasses;
 
+import db.CustomValidator;
+import db.DbManager;
+import db.ITableEntity;
 import javafx.scene.control.Control;
 import javafx.scene.control.DatePicker;
 
@@ -10,7 +13,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class Packages implements ITableEntity{
+public class Packages implements ITableEntity {
 
     public static HashMap<String, String> GetColumnLabels() {
 

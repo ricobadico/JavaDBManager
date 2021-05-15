@@ -1,4 +1,8 @@
-package db;
+package db.PredefinedTableClasses;
+
+import db.CustomValidator;
+import db.DbManager;
+import db.ITableEntity;
 
 import java.lang.reflect.Method;
 import java.sql.PreparedStatement;

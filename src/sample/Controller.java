@@ -163,7 +163,7 @@ public class Controller {
         // Check to see if a class exists with the selected item.
         //  If so, we want to use it instead of the default-choosing code
         try {
-            predefinedClassFile = (Class<ITableEntity>) Class.forName("db." + currentTable,    // Checks for the classfile in the database package
+            predefinedClassFile = (Class<ITableEntity>) Class.forName("db.PredefinedTableClasses." + currentTable,    // Checks for the classfile in the database package
                     false, this.getClass().getClassLoader()); // Extra params to make it work
         // Class.forName calls an exception if the class doesn't exist.
         } catch (ClassNotFoundException e) {
@@ -755,7 +755,7 @@ public class Controller {
             //  If so, we want to use it instead of the default-choosing code
             Class<ITableEntity> checkForTableClass;
             try {
-                checkForTableClass = (Class<ITableEntity>) Class.forName("db." + tableName,    // Checks for the classfile in the database package
+                checkForTableClass = (Class<ITableEntity>) Class.forName("db.PredefinedTableClasses." + tableName,    // Checks for the classfile in the database package
                         false, this.getClass().getClassLoader()); // Extra params to make it work
                 // Class.forName calls an exception if the class doesn't exist.
             } catch (ClassNotFoundException e) {
