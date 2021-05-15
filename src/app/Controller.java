@@ -485,16 +485,20 @@ public class Controller {
         try {
             // Figure out which column is PK
             String pkCol = connection.getPKColumnForTable(currentTable);
+            boolean doesAutoIncr = connection.columnPrimaryKeyAutoIncrements(currentTable, pkCol);
+
             String IDForPKTextBox = "input" + pkCol; // the id of the pk textbox takes this form
+
+
             // Enable all text fields (except PK)
             for (Node child : vboxInputs.getChildren()) {
                 Control tf = (Control) child;
-                if( ! tf.getId().equals(IDForPKTextBox)) { // check if ID corresponds to pk column
+                if( ! (doesAutoIncr && tf.getId().equals(IDForPKTextBox))) { // check if ID corresponds to pk column in auto-increment table
                     tf.setDisable(false);
                 }
                 // Clear this field. How we do this depends on the type of input used
                 // If textfield:
-                if ((tf.getClass().getName()).equals("sample.ValidatingTextField")){
+                if ((tf.getClass().getName()).equals("app.ValidatingTextField")){
                     ((ValidatingTextField) tf).setText("");
                 }
                 // If datepicker:
@@ -552,16 +556,9 @@ public class Controller {
             // Get input value for the column
             String input = null;
             // Special case to handle if the current column is a primary key
-            if (( ! connection.columnPrimaryKeyAutoIncrements(currentTable, pkColumnName))
-            && columnName.equals(pkColumnName)) {
-                int newPKValue = connection.highestPKValueForTable(currentTable, pkColumnName) + 1;
-                input = String.valueOf(newPKValue);
 
-            // Otherwise, run function to pull out value
-            } else {
-                // Pk autoincrements
-                input = getInput(connection, i, columnName);
-            }
+            // Pk autoincrements
+            input = getInput(connection, i, columnName);
 
             // Add pair to arraylist
             textInputs.put(columnName, input);

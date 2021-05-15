@@ -636,7 +636,7 @@ public class DbManager {
     }
 
     public boolean columnPrimaryKeyAutoIncrements(String tableName, String columnName) throws SQLException {
-        String query = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='" + tableName + "' AND COLUMN_NAME='"
+        String query = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA ='travelexperts' AND TABLE_NAME='" + tableName + "' AND COLUMN_NAME='"
                 + columnName + "' AND EXTRA LIKE '%auto_increment%'";
         PreparedStatement statement = connection.prepareStatement(query);
         // Run statement
