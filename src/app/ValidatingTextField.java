@@ -1,9 +1,8 @@
-package sample;
+package app;
 import db.CustomValidator;
 import javafx.scene.control.*;
 
 import java.util.ArrayList;
-import java.util.Collections;
 
 /**
  * Wrapper for javaFX TextFieldl exactly the same but implements

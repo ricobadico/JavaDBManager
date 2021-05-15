@@ -1,10 +1,9 @@
-package sample;
+package app;
 
 import db.CustomValidator;
 import db.DbManager;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Control;
-import javafx.scene.control.DatePicker;
 
 
 import java.sql.SQLException;
@@ -16,8 +15,6 @@ import java.util.HashMap;
  * as well as call a method to test them.
  */
 public interface IValidates {
-
-    // TODO: it would be great if validators were stored backwards (stack?) or called backwards for subsequent user alerts
 
 
     ArrayList<CustomValidator> getValidators(); // gets list of validators from implementing class

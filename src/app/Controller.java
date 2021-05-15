@@ -2,7 +2,7 @@
  * Sample Skeleton for 'sample.fxml' Controller Class
  */
 
-package sample;
+package app;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -25,13 +25,14 @@ import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import db.DbManager;
 
-import static sample.ControllerHelper.makeWarningAlert;
+import static app.ControllerHelper.makeWarningAlert;
 
 public class Controller {
 
     // Member variables
     DbManager connection = null; // current connection
     String currentTable = null; // selected table
+    private String currentPKType = null; // current table's pk's data type
     Class<ITableEntity> predefinedClassFile = null; // predefined table class (if one exists)
     String userMode= null; // tells save button whether to run update or insert methods
 
@@ -61,6 +62,8 @@ public class Controller {
 
     @FXML // fx:id="cbxRecordList1"
     private ComboBox<String> cbxRecordList; // Value injected by FXMLLoader
+
+
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
@@ -98,8 +101,8 @@ public class Controller {
                         // TODO Then, use table combobox value to determine what type of value that pk should be, overload getRecords to take any datatype pk
                         // TODO In addition, set up working for tables with multiple pk
                         // Split item on delimiter between ID and rest of name, grab the ID (in first index), parse to int
-                        int chosenID = Integer.parseInt(chosenItem.split(":")[0]);
-                        populateRecordSelection(chosenID);
+                        String chosenPK = chosenItem.split(":")[0];
+                        populateRecordSelection(chosenPK);
                     }
                 }
 
@@ -356,6 +359,16 @@ public class Controller {
 
         // Disable edit button (until new record is selected)
         btnEdit.setDisable(true);
+
+        // Set a class variable for current table's pk's data type, to use the proper methods below
+        try {
+            String pkColumn = connection.getPKColumnForTable(currentTable);
+            currentPKType = connection.findDataType(currentTable, pkColumn);
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+
     }
 
 
@@ -364,14 +377,24 @@ public class Controller {
      * - Current data for each field in the record are displayed in corresponding text boxes.
      * - The Edit button is enabled for editing.
      */
-    private void populateRecordSelection(int chosenID) {
+    private void populateRecordSelection(String chosenPK) {
 
-            // Enable the add button in case it's disabled
-            btnAdd.setDisable(false);
+        // Enable the add button in case it's disabled
+        btnAdd.setDisable(false);
 
-            // Use that ID to grab record data
-            connection = new db.DbManager(); // create manager class (establishes connection)
-            ResultSet record = connection.getRecord(currentTable, chosenID);
+        connection = new db.DbManager(); // create manager class (establishes connection)
+
+        ResultSet record = null;
+        // Use that ID to grab record data. Which method overload depends on pk data type
+            if (currentPKType.equals("int")) {
+                record = connection.getRecord(currentTable, Integer.parseInt(chosenPK));
+            }
+            else if (currentPKType.equals("varchar")) {
+                record = connection.getRecord(currentTable, chosenPK);
+            }
+            else {
+                makeWarningAlert("Feature not added!", "You've found the bounds of the demonstration.", "Currently, the app only works for tables with either int or String PK, and only for single-column PKs.");
+            }
 
             // Iterate through the inputs generated for the page, adding the next bit of data from the result set
             try {
@@ -649,13 +672,11 @@ public class Controller {
             return;
         }
 
-        //Find and store the value of the primary key for the row being editted
-        int pkValue = Integer.parseInt(textInputs.get(pkColumnName));
-        //int selectedIndex = cbxRecordList.getSelectionModel().getSelectedIndex();
-        //cbxRecordList.getItems().set(selectedIndex, "1:test");
+
         // Attempt to update the database with the given values
         try {
-            connection.updateRecord(currentTable, textInputs);
+            //Find and store the value of the primary key for the row being editted
+            connection.updateRecord(currentTable, currentPKType, textInputs);
 
             // Disable checkboxes
             for (Node textfield : vboxInputs.getChildren()) {
@@ -677,11 +698,12 @@ public class Controller {
             ArrayList<String> updatedInfo = connection.getRecordNames(currentTable);
             //Variable for index position of the edited row
             int cbLabelIndexPos = 0;
+
             //Loop through updatedInfo until entry matching stored primary key value is found. Store index position.
+            String pkValue = textInputs.get(pkColumnName);
             for (int i = 0; i < updatedInfo.size(); i++) {
-                int currentID = Integer.parseInt(
-                        updatedInfo.get(i).split(":")[0]);
-                if (currentID == pkValue) {
+                String currentID = updatedInfo.get(i).split(":")[0];
+                if (currentID.equals(pkValue)) {
                     cbLabelIndexPos = i;
                 }
             }

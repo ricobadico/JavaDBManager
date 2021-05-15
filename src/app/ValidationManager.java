@@ -1,4 +1,4 @@
-package sample;
+package app;
 
 import db.DbManager;
 import javafx.scene.control.Alert;
@@ -8,7 +8,7 @@ import javafx.scene.control.TextField;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-import static sample.ControllerHelper.makeWarningAlert;
+import static app.ControllerHelper.makeWarningAlert;
 
 public class ValidationManager {
 

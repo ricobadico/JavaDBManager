@@ -117,6 +117,38 @@ public class DbManager {
     }
 
     /**
+     * getRecord overload for String primary keys - this method is ONLY to be used when the PK's type in the DATABASE is String/varchar/text
+     * @param tableName Chosen table
+     * @param pk Chosen primary key String value.
+     * @return
+     */
+    public ResultSet getRecord(String tableName, String pk){
+
+        ResultSet res = null;
+        String pkColumn = null;
+
+        try {
+
+            pkColumn = getPKColumnForTable(tableName);
+
+            // Create sql query with parameter for id, catting in injection-safe parameters
+            String query = "SELECT * FROM " + tableName + " WHERE " + pkColumn + " = ?";
+            PreparedStatement statement = connection.prepareStatement(query);
+
+            // Attach method arguments to fill query params
+            statement.setString(1, pk);
+
+            // Run statement
+            res = statement.executeQuery();
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+        return res;
+    }
+
+    /**
      * Gets the primary key column name for the chosen table
      *
      * @param tableName The table to find the PK for
@@ -293,7 +325,7 @@ public class DbManager {
      * @param tableName The table the record to update exists in
      * @param recordData An array which holds record values for each field in the table, in
      */
-    public void updateRecord(String tableName, HashMap<String, String> recordData) throws SQLException {
+    public void updateRecord(String tableName, String pkColDataType, HashMap<String, String> recordData) throws SQLException {
 
         // Create a set of keys to iterate through
         Set<String> colNames = recordData.keySet();
@@ -314,7 +346,15 @@ public class DbManager {
             }
             // Finish the update statement
             query = query.substring(0, query.length() - 2); // remove the trailing ","
-            query += " WHERE " + pkCol + " = " + recordData.get(pkCol); // add a Where clause using the PK column
+            query += " WHERE " + pkCol + " = ";
+
+            // Add the WHERE clause. It will need quotes around it or not, depending on data type
+            if(pkColDataType.equals("int")) {
+                query += recordData.get(pkCol);
+            }
+            else if(pkColDataType.equals("varchar")){
+                query += "'" + recordData.get(pkCol) + "'";
+            }
 
             // Add query as a prepared statement
             PreparedStatement statement = connection.prepareStatement(query);
