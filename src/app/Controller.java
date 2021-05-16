@@ -26,6 +26,7 @@ import javafx.scene.layout.VBox;
 import db.DbManager;
 
 import static app.ControllerHelper.makeWarningAlert;
+import static app.FormatHelper.deformatCurrency;
 
 public class Controller {
 
@@ -415,7 +416,7 @@ public class Controller {
                     if(connection.findDataType(currentTable, colName).equals("decimal")) {
                         DecimalFormat myFormat = new DecimalFormat("$###,##0.00");
                         //Format as currency
-                        double dataAsDecimal = Double.valueOf((data.replaceAll(",","").replaceAll("\\$","")));
+                        double dataAsDecimal = Double.valueOf(deformatCurrency(data));
                         ((ValidatingTextField) input).setText(myFormat.format(dataAsDecimal));
                     }
                     // Else if date
@@ -746,7 +747,7 @@ public class Controller {
                 input = null;
             else {
                 // Otherwise, remove extra characters
-                input = ((input.replaceAll(",", "")).replaceAll("\\$", ""));
+                input = deformatCurrency(input);
             }
         // Varchar/Int/ anything else
         } else {

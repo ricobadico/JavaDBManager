@@ -12,11 +12,15 @@ public class FormatHelper {
     public static void  formatCurrency (TextField colInput, DecimalFormat myFormat) {
 
         // Remove extra characters from formatted input string to get at the actual value (if any exist)
-        String cleanInput = colInput.getText().replaceAll(",", "").replaceAll("\\$", "");
+        String cleanInput = deformatCurrency(colInput.getText());
         // If not empty, re-format the value and set the input text to it
         if (!cleanInput.isBlank()) {
             colInput.setText(myFormat.format(Double.valueOf(cleanInput)));
         }
+    }
+
+    public static String deformatCurrency(String formattedString){
+        return formattedString.replaceAll(",", "").replaceAll("\\$", "");
     }
 
 

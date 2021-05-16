@@ -5,6 +5,7 @@ import db.DbManager;
 import db.ITableEntity;
 import javafx.scene.control.Control;
 import javafx.scene.control.DatePicker;
+import javafx.scene.control.TextField;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -12,6 +13,8 @@ import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import static app.FormatHelper.deformatCurrency;
 
 public class Packages implements ITableEntity {
 
@@ -56,8 +59,8 @@ public class Packages implements ITableEntity {
                 DatePicker startDateInput = (DatePicker) colInput.getScene().lookup("#inputPkgStartDate");
                 LocalDate startDate = startDateInput.getValue();
 
-                // Ensure that end date isn't the same day or before Start date
-                if( ! endDate.isAfter(startDate)) {
+                // Ensure that end date is after start date, otherwise, throw exception to bubble up
+                if( ! endDate.isAfter(startDate) ) {
                     throw new SQLException("Package End date must be after Package Start Date");
                 }
 
@@ -67,12 +70,44 @@ public class Packages implements ITableEntity {
             // This catch exists to manage when start date is blank. In that case, we have nothing to compare,
             // so this check can actually return true (we can leave not-null validation to a separate validator, if needed)
              } catch (NullPointerException e){
-                    System.out.println("Skipping StartDate<EndDate validation with null value");
+                    System.out.println("Skipping StartDate < EndDate validation with null value");
                     return true;
                 }
             }
         });
 
+        // Validator for Agency Commission < PackageBasePrice
+        columnValidators.put("PkgAgencyCommission", new CustomValidator() {
+            @Override
+            public boolean checkValidity(HashMap<String, String> args, Control colInput) throws SQLException {
+
+                try {
+                    // Get basePrice input value
+                    String cleanAgcyComString = deformatCurrency(args.get("value")); // remove formatting
+                    Double agcyCom = Double.parseDouble(cleanAgcyComString); // cast to double
+
+                    //get PkgBasePrice input value - you can do this by getting a ref to the scene from the input, then searching for the ID of another input
+                    TextField pkgBasePriceInput = (TextField) colInput.getScene().lookup("#inputPkgBasePrice");
+                    String cleanBasePriceString = deformatCurrency(pkgBasePriceInput.getText());
+                    Double pkBasePrice = Double.parseDouble(cleanBasePriceString);
+
+                    // Throw error if agency commission exceed base price
+                    // (We could easily set commission to not exceed a given percentage of base price, depending on client wishes)
+                    if( agcyCom > pkBasePrice) {
+                        throw new SQLException("Agency commission amount cannot be more than total Package Base Price.");
+                    }
+
+                    // If above check passed, we're good!
+                    return true;
+
+                    // This catch exists to manage when start date is blank. In that case, we have nothing to compare,
+                    // so this check can actually return true (we can leave not-null validation to a separate validator, if needed)
+                } catch (NullPointerException e){
+                    System.out.println("Skipping AgencyCommision < PackageBasePrice validation with null value");
+                    return true;
+                }
+            }
+        });
 
         /**
          * More validators for columns in this table can go here

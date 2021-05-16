@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 import static app.ControllerHelper.makeWarningAlert;
+import static app.FormatHelper.deformatCurrency;
 
 public class ValidationManager {
 
@@ -95,7 +96,7 @@ public class ValidationManager {
     public static boolean isDecimal(String colName, ValidatingTextField colInput) {
         // Get value
         String value = colInput.getText();
-        String cleanVal = value.replaceAll(",", "").replaceAll("\\$", "");
+        String cleanVal = deformatCurrency(value);
 
         // If null, we don't want to run test, technically pass (let a nullable test handle that)
         if (cleanVal == null || value.isEmpty()) return true;
