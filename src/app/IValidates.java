@@ -10,6 +10,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import static app.ControllerHelper.makeWarningAlert;
+
 /**
  * Interface that allows a Control object to hold validators,
  * as well as call a method to test them.
@@ -72,11 +74,7 @@ public interface IValidates {
                             boolean isValid = vldtr.checkValidity(args, (Control) this);
                             // if validation fails, it throws an exception with a useful message we can capture in an alert
                         } catch (SQLException e) {
-                            Alert a = new Alert(Alert.AlertType.WARNING);
-                            a.setTitle("Validation Error");
-                            a.setHeaderText("Special validation error for " + columnName + ".");
-                            a.setContentText(e.getMessage());
-                            a.showAndWait();
+                            makeWarningAlert("Validation Error", "Special validation error for " + columnName + ".", e.getMessage());
 
                         }
                     }
@@ -119,6 +117,7 @@ public interface IValidates {
                     // we could break out at this point, but keeping it running will trigger any additional failure messages
                 }
             } catch (SQLException e) {
+                makeWarningAlert("Validation Error", "Special validation error for " + columnName + ".", e.getMessage());
                 allPassed = false;
             }
         }

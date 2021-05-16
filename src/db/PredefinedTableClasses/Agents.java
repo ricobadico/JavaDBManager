@@ -3,11 +3,14 @@ package db.PredefinedTableClasses;
 import db.CustomValidator;
 import db.DbManager;
 import db.ITableEntity;
+import javafx.scene.control.Control;
+import javafx.scene.control.DatePicker;
 
 import java.lang.reflect.Method;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -87,6 +90,21 @@ public class Agents implements ITableEntity {
 //                return true;
 //            }
 //        });
+        //todo: remove test here
+        // Validator for PkgEndDate - must be after PkgStartDate
+        columnValidators.put("AgtLastName", new CustomValidator() {
+            @Override
+            public boolean checkValidity(HashMap<String, String> args, Control colInput) throws SQLException {
+
+                    // Ensure that end date isn't the same day or before Start date
+                    if( args.get("value").equals("w")) {
+                        throw new SQLException("BAD");
+                    }
+
+                    // If above check passed, we're good!
+                    return true;
+            }
+        });
 
 
         /**
