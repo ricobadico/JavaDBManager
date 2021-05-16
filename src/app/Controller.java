@@ -499,12 +499,12 @@ public class Controller {
                 }
                 // Clear this field. How we do this depends on the type of input used
                 // If textfield:
-                if ((tf.getClass().getName()).equals("app.ValidatingTextField")){
+                if (tf instanceof ValidatingTextField){
                     ((ValidatingTextField) tf).setText("");
                 }
                 // If datepicker:
-                else if ((tf.getClass().getName()).equals("javafx.scene.control.ValidatingDatePicker")){
-                    ((ValidatingDatePicker) tf).setValue(LocalDate.now());
+                else if (tf instanceof ValidatingDatePicker){
+                    ((ValidatingDatePicker) tf).setValue(null);
                 }
             }
             // Disable edit button
