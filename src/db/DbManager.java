@@ -481,7 +481,7 @@ public class DbManager {
                 // With the data type, we can determine what parsing action needs to be done to set the param for this column
                 // This is not exhaustive but should work for our purposes
                 // If null, we can just set to null
-                if(inputValue == null){
+                if(inputValue == null || inputValue.isBlank()){
                     statement.setString(i, null);
                 }
                 else {
@@ -677,6 +677,42 @@ public class DbManager {
             throwables.printStackTrace();
         }
         return datatype;
+    }
+
+    /**
+     * Gets the max length of a column's datatype (character length for varchar, or number scale for double etc)
+     * Note that right now, it's only being used for varchar validation
+     * @param tableName
+     * @param columnName
+     * @return
+     * @throws SQLException
+     */
+    public Integer findDataTypeMaxLength(String tableName, String columnName) {
+
+        Integer lengthData = null;
+
+        // Create query to grab column metadate for the chosen column
+        String query = "SELECT CHARACTER_MAXIMUM_LENGTH, NUMERIC_SCALE " +
+                "FROM INFORMATION_SCHEMA.Columns " +
+                "WHERE TABLE_SCHEMA = 'travelexperts' AND TABLE_NAME = '" + tableName + "' " +
+                "AND COLUMN_NAME = '" + columnName + " ';";
+
+        // Run the query
+        try {
+            Statement statement = connection.createStatement();
+
+            ResultSet res=  statement.executeQuery(query);
+
+            // Type date is in the second column of this query
+            if(res.next()) {
+                lengthData = res.getInt(1);
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+        return lengthData;
+
     }
 
 

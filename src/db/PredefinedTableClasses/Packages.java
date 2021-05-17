@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -69,7 +70,7 @@ public class Packages implements ITableEntity {
 
             // This catch exists to manage when start date is blank. In that case, we have nothing to compare,
             // so this check can actually return true (we can leave not-null validation to a separate validator, if needed)
-             } catch (NullPointerException e){
+             } catch (NullPointerException | DateTimeParseException e){
                     System.out.println("Skipping StartDate < EndDate validation with null value");
                     return true;
                 }
@@ -102,7 +103,7 @@ public class Packages implements ITableEntity {
 
                     // This catch exists to manage when start date is blank. In that case, we have nothing to compare,
                     // so this check can actually return true (we can leave not-null validation to a separate validator, if needed)
-                } catch (NullPointerException e){
+                } catch (NullPointerException | NumberFormatException e){
                     System.out.println("Skipping AgencyCommision < PackageBasePrice validation with null value");
                     return true;
                 }

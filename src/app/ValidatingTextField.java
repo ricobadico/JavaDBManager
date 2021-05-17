@@ -39,6 +39,16 @@ public class ValidatingTextField extends TextField implements IValidates{
     }
 
     @Override
+    public void setInputAsString(String string) {
+        this.setText(string);
+    }
+
+    @Override
+    public void setInputToBlank() {
+        this.setText("");
+    }
+
+    @Override
     public boolean checkIfFirstBlur() {
         return blurOnceCheck;
     }

@@ -25,6 +25,10 @@ public interface IValidates {
 
     String getInputAsString(); // gets input string from validating class
 
+    void setInputAsString(String string); // sets control value to string
+
+    void setInputToBlank();
+
     boolean checkIfFirstBlur(); // boolean that tracks whether onBlur has fired (to prevent recursion)
 
     void setFirstBlur(boolean val);
