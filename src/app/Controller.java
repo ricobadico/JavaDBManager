@@ -347,7 +347,7 @@ public class Controller {
             }
 
             //Set all accumulated validators to trigger on leaving the control
-            ((IValidates) colInput).addOnBlurValidation(currentTable, colName);
+            ((IValidates) colInput).addOnBlurValidation(currentTable, colName, btnAdd.getScene());
 
             // Set input to read-only (default until edit mode is entered)
             colInput.setDisable(true);

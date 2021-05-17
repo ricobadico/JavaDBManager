@@ -2,6 +2,8 @@ package app;
 
 import db.CustomValidator;
 import db.DbManager;
+import javafx.collections.ObservableMap;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Control;
 
@@ -31,8 +33,7 @@ public interface IValidates {
         getValidators().add(validator);
     }
 
-    // TODO: this is only triggering once! Why?
-    default void addOnBlurValidation(String tableName, String columnName){
+    default void addOnBlurValidation(String tableName, String columnName, Scene scene){
 
         DbManager connection = new DbManager();
 
@@ -50,6 +51,7 @@ public interface IValidates {
 
             // Add validation check as an on-blur listener for the input
             ((Control)this).focusedProperty().addListener((observableValue, aBoolean, t1) -> {
+
                 if (!t1 && this.checkIfFirstBlur() == true) {
 
 
