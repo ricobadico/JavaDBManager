@@ -1,4 +1,4 @@
-package app;
+package app.Validation;
 
 import db.DbManager;
 import javafx.scene.control.Alert;
