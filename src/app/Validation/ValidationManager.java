@@ -7,6 +7,8 @@ import javafx.scene.control.Control;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static app.ControllerHelper.makeWarningAlert;
 import static app.FormatHelper.deformatCurrency;
@@ -126,7 +128,7 @@ public class ValidationManager {
         }
     }
 
-    // TODO FINISH THIS
+
     public static boolean phoneNumSoftValidate(String colName, IValidates colInput) {
         // Get value
         String value = colInput.getInputAsString();
@@ -134,15 +136,16 @@ public class ValidationManager {
         // If null, we don't want to run test, technically pass (let a nullable test handle that)
         if (value == null || value.isEmpty()) return true;
 
-        // Attempt to parse as an int
-
+        // Check phone number regex  match
         try {
-            int val = Integer.parseInt(value);
+            Pattern pattern = Pattern.compile("^(\\+\\d{1,3}( )?)?((\\(\\d{3}\\))|\\d{3})[- .]?\\d{3}[- .]?\\d{4}$");
+            Matcher matcher = pattern.matcher(value);
 
-            if (val < 0) {
+            if (! matcher.matches()) {
                 Alert a = new Alert(Alert.AlertType.CONFIRMATION);
-                a.setTitle("Negative Value");
-                a.setHeaderText("You have provided a negative number for " + colName + ". Please confirm this is correct");
+                a.setTitle("Phone Validation");
+                a.setHeaderText("Possibly invalid data for " + colName);
+                a.setContentText("It looks like " + colName + " may require a phone number. Please confirm your value is correct.");
                 a.showAndWait();
             }
 

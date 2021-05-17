@@ -652,7 +652,6 @@ public class DbManager {
 
     }
 
-    // todo: needs to work for non-int pk's
     public int highestPKValueForTable(String tableName, String pkColName) throws SQLException {
         try {
             String query = "SELECT MAX(" + pkColName + ") FROM " + tableName;
@@ -663,7 +662,7 @@ public class DbManager {
             return Integer.parseInt(res.getString(1));
         }
         catch (IllegalArgumentException e){
-            System.out.println("Error: system currently doesn't handle non-int PKs. A to-do");
+            System.out.println(e.getMessage());
             return -1;
         }
     }

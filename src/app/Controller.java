@@ -25,7 +25,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import db.DbManager;
 
-import static app.ControllerHelper.makeWarningAlert;
+import static app.ControllerHelper.*;
 import static app.FormatHelper.deformatCurrency;
 
 public class Controller {
@@ -98,9 +98,6 @@ public class Controller {
                     // So, we only populate data when a non-null selection is chosen.
                     if (chosenItem != null) {
 
-                        // TODO and its a big one: get this as a string, then make populateRecordSelection take a string argument instead of int.
-                        // TODO Then, use table combobox value to determine what type of value that pk should be, overload getRecords to take any datatype pk
-                        // TODO In addition, set up working for tables with multiple pk
                         // Split item on delimiter between ID and rest of name, grab the ID (in first index), parse to int
                         String chosenPK = chosenItem.split(":")[0];
                         populateRecordSelection(chosenPK);
@@ -219,63 +216,42 @@ public class Controller {
         // Create the columns needed for this table's data
         for (String colName: columnNames) { // for each column:
 
-            // Get column max length, used later below
-            Integer maxLength = connection.findDataTypeMaxLength(currentTable,colName);
+            ControllerHelper ch = new ControllerHelper(colName, currentTable); // Helper object for controller work
+            Integer maxLength = connection.findDataTypeMaxLength(currentTable,colName);  // Get column max length, used later below
 
-            // Format the detail label a bit to add space
-            String tidierDefaultLabel = FormatHelper.getTidierDefaultLabel(colName);
-
-            Label columnLabel = new Label(tidierDefaultLabel); // create a new label with that name
-
-            // Update to use the column's display label (if defined in the class)
-            if(formattedColumnLabels != null && formattedColumnLabels.get(colName) != null) {
-                // Find the formatted label associated with the actual db column name (in colName variable)
-                columnLabel.setText(formattedColumnLabels.get(colName));
-            }
-
-            // Set up other label formatting
-            columnLabel.setStyle("-fx-font: 16 System"); // update size
-            columnLabel.setPadding(new Insets(0,0,5,0)); // add a little padding
-            columnLabel.setId("lbl" + colName);
+            Label columnLabel = ch.makeColumnLabel(formattedColumnLabels);
             vboxLabels.getChildren().add(columnLabel); // attach it to the vbox
 
-            // ** Add an input and listeners based on the column's datatype
-            Control colInput;
 
+            // Now, we add a control based on the column's datatype
+
+            Control colInput;
+            String datatype = connection.findDataType(currentTable, colName);
             // Datetime data: create datepicker
-            if(connection.findDataType(currentTable, colName).equals("datetime")) {
-                colInput = new ValidatingDatePicker(currentTable, colName);
-                colInput.setMinWidth(250); // sets width of datepicker to match textinput length
+            if(datatype.equals("datetime")) {
+                colInput = ch.makeDatePicker();
             }
 
             // Decimal data: create textbox with decimal formatting and validation
-            else if (connection.findDataType(currentTable, colName).equals("decimal")) {
-                colInput = new ValidatingTextField(currentTable, colName); // add a text field
+            else if (datatype.equals("decimal")) {
+                colInput = ch.makeTextField(); // add a text field
 
                 // Add an on-blur listener that will format the input to a nice currency display
-                DecimalFormat myFormat = new DecimalFormat("$###,##0.00");
-                colInput.focusedProperty().addListener((observableValue, aBoolean, t1) -> {
-                    if (observableValue.getValue() == false)
-                        FormatHelper.formatCurrency((ValidatingTextField) colInput, myFormat);
-                });
+                ch.setDecimalFormatListener(colInput);
 
-            // Int data: create textbox and add int validation
-            } else if (connection.findDataType(currentTable, colName).equals("int")) {
-                colInput = new ValidatingTextField(currentTable, colName); // add a text field
+            // Int data: create textbox
+            } else if (datatype.equals("int")) {
+                colInput = ch.makeTextField(); // add a text field
 
             // Text data that could be longer than one line
             } else if (maxLength != null && maxLength > 50) {
-                colInput = new ValidatingTextArea(currentTable, colName); // add a text area
-                ((ValidatingTextArea) colInput).setMaxHeight(30); // Set it's height
-                columnLabel.setMaxHeight(42); // Adjust the label to keep things aligned
-                columnLabel.setMinHeight(42);
-                columnLabel.setAlignment(Pos.TOP_LEFT);
+                colInput = ch.makeTextArea(columnLabel);
 
             // Varchar/ misc data
             // TODO: Not neccessary, but could add varchar length validation here instead of in DbManager
             // TODO: Figure out if there are other data types this should be checking for
             } else {
-                colInput = new ValidatingTextField(currentTable, colName); // add a text field
+                colInput = ch.makeTextField(); // add a text field
             }
             colInput.setId("input" + colName); // give it an id
 
@@ -286,53 +262,30 @@ public class Controller {
 
             // Add non-null validation if applicable to this column
             if (nullableColumns.contains(colName)){
-                ((IValidates) colInput).addValidator(new CustomValidator() {
-                        @Override
-                        public boolean checkValidity(HashMap<String, String> args, Control colInput) throws SQLException {
-                            return ValidationManager.isNotNull(colInput, colName);
-                        }
-                });
+                ch.addNonNullValidation((IValidates) colInput);
             }
 
             // Add validator to check for positive integers for int inputs
-            if (connection.findDataType(currentTable, colName).equals("int")) {
-                ((IValidates) colInput).addValidator(
-                        new CustomValidator() {
-                            @Override
-                            public boolean checkValidity(HashMap<String, String> args, Control colInput) throws SQLException {
-                                return ValidationManager.isInt(colName, (ValidatingTextField) colInput);
-                            }
-                        });
+            if (datatype.equals("int")) {
+                ch.addIntValidation((IValidates) colInput);
             }
 
             // Add decimal/double validation
-            String datatype = connection.findDataType(currentTable, colName);
             if (datatype.equals("decimal") || datatype.equals("double")) {
-                ((IValidates) colInput).addValidator(
-                        new CustomValidator() {
-                            @Override
-                            public boolean checkValidity(HashMap<String, String> args, Control colInput) throws SQLException {
-                                return ValidationManager.isDecimal(colName, (ValidatingTextField) colInput);
-                            }
-                        });
+                ch.addDoubleDecimalValidation((IValidates) colInput);
             }
 
             // Add foreign key reference validation if needed (regardless of data type)
             // Call DB information schema to see if this column is a foreign key, and if so, to what
             DbManager.ForeignKeyReference fkRef = connection.getForeignKeyReferences(currentTable, colName);
             if (fkRef != null){ // if a fk reference to a pk was found..
-
-                // Add that validator to the internal list of validators for this control
-                ((IValidates) colInput).addValidator(new CustomValidator() {
-                    @Override
-                    public boolean checkValidity(HashMap<String, String> args, Control colInput) throws SQLException {
-                        return ValidationManager.foreignKeyConstraintMet(colName, fkRef.getForeignKeyRefTable(),
-                                fkRef.getForeignKeyRefColumn(), (ValidatingTextField) colInput);
-                    }
-                });
+                ch.addFKeyValidation((IValidates) colInput, fkRef);
             }
 
-            // if(colName.contains("Phone")) TODO FINISH THIS
+            // Add soft confirmation validation for potential phone number fields
+             if(colName.toLowerCase(Locale.ROOT).contains("phone")){
+                 ch.addSoftPhoneValidation((IValidates) colInput);
+             }
 
             // If a preexisting table class exists, add custom validation if any
             if(predefinedClassFile != null){  // Check for table class
@@ -349,10 +302,8 @@ public class Controller {
 
                 //In the event that any of those validators refer to the current column, we add it to the control
                 if(additionalValidators.containsKey(colName)) {
-
                     // Grab that validator
                     CustomValidator validator = additionalValidators.get(colName);
-
                     // Add that validator to the internal list of validators (so we can run them later on clicking Save)
                     ((IValidates) colInput).addValidator(validator);
                 }
@@ -364,7 +315,7 @@ public class Controller {
             // Set input to read-only (default until edit mode is entered)
             colInput.setDisable(true);
 
-        }
+        } // end loop over columns
 
         // Enable second combobox
         cbxRecordList.setDisable(false);
@@ -383,6 +334,8 @@ public class Controller {
 
 
     }
+
+
 
 
     /**
@@ -754,7 +707,6 @@ public class Controller {
      * with predefined class files are on top with an asterisk.
      * @param tableNames ArrayList of table name strings
      */
-    //TODO: it is vaguely magic that this works
     private ArrayList<String> highlightPredefinedClasses(ArrayList<String> tableNames) {
         ArrayList<String> topTables = new ArrayList<>();
         for (int i = 0; i < tableNames.size(); i++){
