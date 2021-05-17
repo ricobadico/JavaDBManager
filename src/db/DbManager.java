@@ -12,7 +12,7 @@ import static java.lang.Integer.parseInt;
 
 public class DbManager {
 
-    final String DB_NAME = "travelexperts";
+    final String DB_NAME = "travelexperts"; // TODO FOR HARV: rename me!
 
     // Members
     Connection connection;
@@ -20,11 +20,11 @@ public class DbManager {
     // Constructor establishes a connection
     public DbManager(){
 
-        String url = "jdbc:mysql://localhost:3306/" + DB_NAME;
+        String url = "jdbc:mysql://localhost:3306/" + DB_NAME; // TODO FOR HARV: rename me!
 
         try {
         // Connect using local db url and credentials
-        connection = DriverManager.getConnection(url, "root", "");
+        connection = DriverManager.getConnection(url, "root", ""); // TODO FOR HARV: rename me!
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -212,7 +212,7 @@ public class DbManager {
             String query =
                     "SELECT REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME " +
                         "FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE " +
-                        "WHERE REFERENCED_TABLE_SCHEMA = 'travelexperts' " +
+                        "WHERE REFERENCED_TABLE_SCHEMA = '" + DB_NAME +  "' " +
                         "AND TABLE_NAME = ? " +
                         "AND COLUMN_NAME = ?;";
             PreparedStatement statement = connection.prepareStatement(query);
@@ -636,7 +636,7 @@ public class DbManager {
     }
 
     public boolean columnPrimaryKeyAutoIncrements(String tableName, String columnName) throws SQLException {
-        String query = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA ='travelexperts' AND TABLE_NAME='" + tableName + "' AND COLUMN_NAME='"
+        String query = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA ='" + DB_NAME + "' AND TABLE_NAME='" + tableName + "' AND COLUMN_NAME='"
                 + columnName + "' AND EXTRA LIKE '%auto_increment%'";
         PreparedStatement statement = connection.prepareStatement(query);
         // Run statement
@@ -694,7 +694,7 @@ public class DbManager {
         // Create query to grab column metadate for the chosen column
         String query = "SELECT CHARACTER_MAXIMUM_LENGTH, NUMERIC_SCALE " +
                 "FROM INFORMATION_SCHEMA.Columns " +
-                "WHERE TABLE_SCHEMA = 'travelexperts' AND TABLE_NAME = '" + tableName + "' " +
+                "WHERE TABLE_SCHEMA = '" + DB_NAME + "' AND TABLE_NAME = '" + tableName + "' " +
                 "AND COLUMN_NAME = '" + columnName + " ';";
 
         // Run the query

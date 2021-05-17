@@ -332,6 +332,8 @@ public class Controller {
                 });
             }
 
+            // if(colName.contains("Phone")) TODO FINISH THIS
+
             // If a preexisting table class exists, add custom validation if any
             if(predefinedClassFile != null){  // Check for table class
 

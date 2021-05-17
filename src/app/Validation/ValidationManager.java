@@ -3,7 +3,7 @@ package app.Validation;
 import db.DbManager;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Control;
-import javafx.scene.control.TextField;
+
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -13,9 +13,9 @@ import static app.FormatHelper.deformatCurrency;
 
 public class ValidationManager {
 
-    public static boolean isInt(String colName, TextField colInput) {
+    public static boolean isInt(String colName, IValidates colInput) {
         // Get value
-        String value = colInput.getText();
+        String value = colInput.getInputAsString();
 
         // If null, we don't want to run test, technically pass (let a nullable test handle that)
         if (value == null || value.isEmpty()) return true;
@@ -44,9 +44,9 @@ public class ValidationManager {
         }
     }
 
-    public static boolean foreignKeyConstraintMet(String colName, String foreignKeyTable, String foreignKeyColumn, TextField colInput) {
+    public static boolean foreignKeyConstraintMet(String colName, String foreignKeyTable, String foreignKeyColumn, IValidates colInput) {
 
-        String value = colInput.getText();
+        String value = colInput.getInputAsString();
 
         // If null, we don't want to run test, technically pass (let a nullable test handle that)
         if (value == null || value.isEmpty()) return true;
@@ -93,9 +93,9 @@ public class ValidationManager {
                 return true;
     }
 
-    public static boolean isDecimal(String colName, ValidatingTextField colInput) {
+    public static boolean isDecimal(String colName, IValidates colInput) {
         // Get value
-        String value = colInput.getText();
+        String value = colInput.getInputAsString();
         String cleanVal = deformatCurrency(value);
 
         // If null, we don't want to run test, technically pass (let a nullable test handle that)
@@ -119,6 +119,38 @@ public class ValidationManager {
         } catch (NumberFormatException e){
             makeWarningAlert("Validation Error","Please provide a number for " + colName + ".", e.getMessage());
 
+
+            // Return false
+            return false;
+
+        }
+    }
+
+    // TODO FINISH THIS
+    public static boolean phoneNumSoftValidate(String colName, IValidates colInput) {
+        // Get value
+        String value = colInput.getInputAsString();
+
+        // If null, we don't want to run test, technically pass (let a nullable test handle that)
+        if (value == null || value.isEmpty()) return true;
+
+        // Attempt to parse as an int
+
+        try {
+            int val = Integer.parseInt(value);
+
+            if (val < 0) {
+                Alert a = new Alert(Alert.AlertType.CONFIRMATION);
+                a.setTitle("Negative Value");
+                a.setHeaderText("You have provided a negative number for " + colName + ". Please confirm this is correct");
+                a.showAndWait();
+            }
+
+            return true;
+
+            // If the parse failed, bring up message to admonish the user's foolery
+        } catch (NumberFormatException e){
+            makeWarningAlert("Validation Error","Please provide a number for " + colName + ".", e.getMessage());
 
             // Return false
             return false;

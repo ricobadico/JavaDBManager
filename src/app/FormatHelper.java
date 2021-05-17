@@ -14,8 +14,12 @@ public class FormatHelper {
         // Remove extra characters from formatted input string to get at the actual value (if any exist)
         String cleanInput = deformatCurrency(colInput.getText());
         // If not empty, re-format the value and set the input text to it
-        if (!cleanInput.isBlank()) {
-            colInput.setText(myFormat.format(Double.valueOf(cleanInput)));
+        try {
+            if (!cleanInput.isBlank()) {
+                colInput.setText(myFormat.format(Double.parseDouble(cleanInput)));
+            }
+        } catch (NumberFormatException | NullPointerException e){
+            System.out.println("No currency to format! Validator will alert user");
         }
     }
 

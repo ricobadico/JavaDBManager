@@ -76,31 +76,19 @@ public class Agents implements ITableEntity {
          * the value is a new Custom Validator object that overwrites the checkValidity method
          * to be whatever validation you want to add. The validation should return true or throw an exception to be caught.
          */
-        // TODO: we need to make some custom validation for certain classes. This has to wait however for Eric's IValidates fix, broken right now...
 
-        // Validator for AgencyID: checks to ensure foreign key constraints met (AgencyID exists in other column)
-//        columnValidators.put("AgencyId", new CustomValidator() {
-//            @Override
-//            public boolean checkValidity(HashMap<String, String> args) throws SQLException {
-//                DbManager db = new DbManager();
-//                boolean isValid = db.columnIntValueExists("Agencies", "AgencyId", Integer.parseInt(args.get("value")));
-//                if(isValid == false) {
-//                    throw new SQLException("The provided agency ID does not exist in the database");
-//                }
-//                return true;
-//            }
-//        });
-        //todo: remove test here
-        // Validator for PkgEndDate - must be after PkgStartDate
+        // Sample validation to show how it can be easily added. Note that error is thrown rather than returning false.
+        // This is done for easy bubbling up of error messages, and so the same pattern can be used to catch any errors the program doesn't account for.
+        // Todo: probably should remove this but it's a pretty harmless demonstration
         columnValidators.put("AgtLastName", new CustomValidator() {
             @Override
             public boolean checkValidity(HashMap<String, String> args, Control colInput) throws SQLException {
 
-                    // Ensure that end date isn't the same day or before Start date
-                    if( args.get("value").equals("w")) {
-                        throw new SQLException("BAD");
+                    // Test the validity condition
+                    if(args.get("value") != null
+                       && args.get("value").equals("TEST_VALIDATION")) {
+                            throw new SQLException("This is a simple test validator to demonstrate functionality!");
                     }
-
                     // If above check passed, we're good!
                     return true;
             }
