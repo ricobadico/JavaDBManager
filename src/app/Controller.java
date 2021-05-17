@@ -724,14 +724,10 @@ public class Controller {
         String input;
 
         // We need to process the data a bit based on the data type in the db
-        // Datetime: pulled from ValidatingDatePicker
-        if(connection.findDataType(currentTable, columnName).equals("datetime")){
-            input = ((IValidates)vboxInputs.getChildren().get(i)).getInputAsString();
-
         // Decimal: Pulled from textfield, needs to be stripped of currency characters if not null
-        } else if(connection.findDataType(currentTable, columnName).equals("decimal")) {
+        if(connection.findDataType(currentTable, columnName).equals("decimal")) {
             // Get input from text box
-            input = ((ValidatingTextField)vboxInputs.getChildren().get(i)).getText();
+            input = ((IValidates)vboxInputs.getChildren().get(i)).getInputAsString();
 
             // If empty space, set value to null
             if(input.isBlank())
@@ -743,7 +739,7 @@ public class Controller {
         // Varchar/Int/ anything else
         } else {
             // Get input from text box
-             input = ((ValidatingTextField)vboxInputs.getChildren().get(i)).getText();
+             input = ((IValidates)vboxInputs.getChildren().get(i)).getInputAsString();
 
             // If empty space, set value to null
             if(input.isBlank())
