@@ -342,7 +342,9 @@ public class DbManager {
             String query = "UPDATE " + tableName + " SET "; // create first bit with table name
             // For each column of data being updated, we add the column name and a spot for its param
             for (String colName : colNames) {
-                query += colName + " = ?, "; // adds another column update to the query
+                // Ignore adding pkCol to query (since it should not be updated)
+                if(! colName.equals(pkCol))
+                    query += colName + " = ?, "; // adds another column update to the query
             }
             // Finish the update statement
             query = query.substring(0, query.length() - 2); // remove the trailing ","
@@ -363,59 +365,60 @@ public class DbManager {
 
             // Now we set parameters, which will require parsing each record value according to its database type
             for (String colName : colNames) {
+                // Ignore adding pkCol to query (since it should not be updated)
+                if(! colName.equals(pkCol)) {
+                    currentColumn = colName;
 
-                currentColumn = colName;
+                    // First, we need to determine what type the current value should be parsed to
+                    String dbColumnDataType = getColumnDataType(tableName, colName);
 
-                // First, we need to determine what type the current value should be parsed to
-                String dbColumnDataType = getColumnDataType(tableName, colName);
+                    // Put the current string value in a variable for shorthand
+                    String inputValue = recordData.get(colName);
+                    if (inputValue == null || inputValue.isBlank()) {
+                        statement.setString(i, null);
+                    } else {
 
-                // Put the current string value in a variable for shorthand
-                String inputValue = recordData.get(colName);
-                if (inputValue == null || inputValue.isBlank()){
-                    statement.setString(i, null);
-                }
-                else {
+                        // For now we just need the data type name, not the length.
+                        String[] dataTypebits = dbColumnDataType.split("\\("); // this breaks up eg "decimal(19,4)" after the datatype name
+                        String datatype = dataTypebits[0]; // the name of the datatype
+                        String lengthData; //used below to validate length
 
-                    // For now we just need the data type name, not the length.
-                    String[] dataTypebits = dbColumnDataType.split("\\("); // this breaks up eg "decimal(19,4)" after the datatype name
-                    String datatype = dataTypebits[0]; // the name of the datatype
-                    String lengthData; //used below to validate length
+                        // With the data type, we can determine what parsing action needs to be done to set the param for this column
+                        // This is not exhaustive but should work for our purposes
 
-                    // With the data type, we can determine what parsing action needs to be done to set the param for this column
-                    // This is not exhaustive but should work for our purposes
+                        switch (datatype) {
+                            case "int":
 
-                    switch (datatype) {
-                        case "int":
+                                int value = parseInt(inputValue);
+                                statement.setInt(i, value);
+                                break;
 
-                            int value = parseInt(inputValue);
-                            statement.setInt(i, value);
-                            break;
+                            case "decimal":
+                                statement.setBigDecimal(i, new BigDecimal(inputValue));
+                                break;
 
-                        case "decimal":
-                            statement.setBigDecimal(i, new BigDecimal(inputValue));
-                            break;
+                            case "datetime":
+                                statement.setDate(i, Date.valueOf(LocalDate.parse(inputValue)));
+                                break;
 
-                        case "datetime":
-                            statement.setDate(i, Date.valueOf(LocalDate.parse(inputValue)));
-                            break;
+                            case "varchar":
 
-                        case "varchar":
+                                // Validate length
+                                lengthData = dataTypebits[1].split("\\)")[0];
+                                int maxLength = parseInt(lengthData);
+                                if (inputValue != null && inputValue.length() > maxLength) {
+                                    throw new SQLException(colName + " exceeds the max number of characters");
+                                }
 
-                            // Validate length
-                            lengthData = dataTypebits[1].split("\\)")[0];
-                            int maxLength = parseInt(lengthData);
-                            if (inputValue != null && inputValue.length() > maxLength) {
-                                throw new SQLException(colName + " exceeds the max number of characters");
-                            }
+                                statement.setString(i, inputValue);
 
-                            statement.setString(i, inputValue);
-
-                        default: // notably for "varchar"
-                            statement.setString(i, inputValue);
+                            default: // notably for "varchar"
+                                statement.setString(i, inputValue);
+                        }
                     }
-                }
 
-                i++; // add to the counter before we go to the next column of data
+                    i++; // add to the counter before we go to the next column of data
+                }
             }
 
             // Execute the statement

@@ -2,9 +2,7 @@ package app.Validation;
 
 import db.CustomValidator;
 import db.DbManager;
-import javafx.collections.ObservableMap;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Control;
 
 
@@ -13,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import static app.ControllerHelper.makeWarningAlert;
+
 
 /**
  * Interface that allows a Control object to hold validators,

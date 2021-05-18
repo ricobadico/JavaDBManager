@@ -18,14 +18,12 @@ import db.ITableEntity;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import db.DbManager;
 
-import static app.ControllerHelper.*;
+import static app.ControllerHelper.makeWarningAlert;
 import static app.FormatHelper.deformatCurrency;
 
 public class Controller {
@@ -216,10 +214,10 @@ public class Controller {
         // Create the columns needed for this table's data
         for (String colName: columnNames) { // for each column:
 
-            ControllerHelper ch = new ControllerHelper(colName, currentTable); // Helper object for controller work
+            ControlMaker cm = new ControlMaker(colName, currentTable); // Helper object for controller work
             Integer maxLength = connection.findDataTypeMaxLength(currentTable,colName);  // Get column max length, used later below
 
-            Label columnLabel = ch.makeColumnLabel(formattedColumnLabels);
+            Label columnLabel = cm.makeColumnLabel(formattedColumnLabels);
             vboxLabels.getChildren().add(columnLabel); // attach it to the vbox
 
 
@@ -229,29 +227,28 @@ public class Controller {
             String datatype = connection.findDataType(currentTable, colName);
             // Datetime data: create datepicker
             if(datatype.equals("datetime")) {
-                colInput = ch.makeDatePicker();
+                colInput = cm.makeDatePicker();
             }
 
             // Decimal data: create textbox with decimal formatting and validation
             else if (datatype.equals("decimal")) {
-                colInput = ch.makeTextField(); // add a text field
+                colInput = cm.makeTextField(); // add a text field
 
-                // Add an on-blur listener that will format the input to a nice currency display
-                ch.setDecimalFormatListener(colInput);
+
 
             // Int data: create textbox
             } else if (datatype.equals("int")) {
-                colInput = ch.makeTextField(); // add a text field
+                colInput = cm.makeTextField(); // add a text field
 
             // Text data that could be longer than one line
             } else if (maxLength != null && maxLength > 50) {
-                colInput = ch.makeTextArea(columnLabel);
+                colInput = cm.makeTextArea(columnLabel);
 
             // Varchar/ misc data
             // TODO: Not neccessary, but could add varchar length validation here instead of in DbManager
             // TODO: Figure out if there are other data types this should be checking for
             } else {
-                colInput = ch.makeTextField(); // add a text field
+                colInput = cm.makeTextField(); // add a text field
             }
             colInput.setId("input" + colName); // give it an id
 
@@ -262,30 +259,33 @@ public class Controller {
 
             // Add non-null validation if applicable to this column
             if (nullableColumns.contains(colName)){
-                ch.addNonNullValidation((IValidates) colInput);
+                cm.addNonNullValidation((IValidates) colInput);
             }
-
             // Add validator to check for positive integers for int inputs
             if (datatype.equals("int")) {
-                ch.addIntValidation((IValidates) colInput);
+                cm.addIntValidation((IValidates) colInput);
             }
-
             // Add decimal/double validation
-            if (datatype.equals("decimal") || datatype.equals("double")) {
-                ch.addDoubleDecimalValidation((IValidates) colInput);
+            else if (datatype.equals("decimal") || datatype.equals("double")) {
+                cm.addDoubleDecimalValidation((IValidates) colInput);
             }
 
             // Add foreign key reference validation if needed (regardless of data type)
             // Call DB information schema to see if this column is a foreign key, and if so, to what
             DbManager.ForeignKeyReference fkRef = connection.getForeignKeyReferences(currentTable, colName);
             if (fkRef != null){ // if a fk reference to a pk was found..
-                ch.addFKeyValidation((IValidates) colInput, fkRef);
+                cm.addFKeyValidation((IValidates) colInput, fkRef);
             }
 
             // Add soft confirmation validation for potential phone number fields
              if(colName.toLowerCase(Locale.ROOT).contains("phone")){
-                 ch.addSoftPhoneValidation((IValidates) colInput);
+                 cm.addSoftPhoneValidation((IValidates) colInput);
              }
+
+            // Add soft confirmation validation for potential email fields
+            if(colName.toLowerCase(Locale.ROOT).contains("email")){
+                cm.addSoftEmailValidation((IValidates) colInput);
+            }
 
             // If a preexisting table class exists, add custom validation if any
             if(predefinedClassFile != null){  // Check for table class
@@ -368,8 +368,8 @@ public class Controller {
                 for (int i = 0; i < vboxInputs.getChildren().size(); i++) {
                     // Grab the input at that index
                     Control input = (Control) vboxInputs.getChildren().get(i);
-                    // Grab the data for that field from the results (adding 1 to match index)
-                    String data = record.getObject(i + 1) + "";
+                    // Grab the data for that field from the results (adding 1 to match index) - trim for cleanliness
+                    String data = String.valueOf(record.getObject(i + 1)).trim();
 
                     // If data is null, replace with empty string
                     if (data.isBlank() || data.equals("null")) {
@@ -385,14 +385,15 @@ public class Controller {
                             double dataAsDecimal = Double.valueOf(deformatCurrency(data));
                             ((ValidatingTextField) input).setText(myFormat.format(dataAsDecimal));
                         }
-                        // Else if date
                         else {
-                            ((IValidates) input).setInputAsString(data);
+                            ((IValidates) input).setInputAsString(data); // add data to input
                         }
                     }
+                    vboxInputs.getChildren().get(i).setDisable(true); // set default state of disabled until Edit Mode entered
                 }
 
                 btnEdit.setDisable(false);
+
 
             } catch (SQLException e) {
                 makeWarningAlert("Connection Issue","We can't seem to connect to the database!", e.getMessage());
@@ -595,7 +596,7 @@ public class Controller {
         // Loop through inputs - here, we can pull data, and call validators
         for(int i = 0; i < vboxInputs.getChildren().size(); i++){
             // Get column name from labels
-            String columnName = ((Label)vboxLabels.getChildren().get(i)) // get the current label
+            String columnName = (vboxLabels.getChildren().get(i)) // get the current label
                     .getId().substring(3); // and get the id (eg "lblAgentId") and remove the lbl to get the SQL column name;
 
             // Get value from input

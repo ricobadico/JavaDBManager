@@ -6,9 +6,12 @@ import javafx.scene.control.TextFormatter;
 import java.text.DecimalFormat;
 import java.text.ParsePosition;
 
+/**
+ * Class that provides various text formatting methods for the app
+ */
+
 public class FormatHelper {
 
-    //
     public static void  formatCurrency (TextField colInput, DecimalFormat myFormat) {
 
         // Remove extra characters from formatted input string to get at the actual value (if any exist)
