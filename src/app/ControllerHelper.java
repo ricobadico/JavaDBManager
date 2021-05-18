@@ -21,4 +21,13 @@ public class ControllerHelper {
         a.setContentText(message);
         a.showAndWait();
     }
+
+    public static void makeInfoAlert(String title, String content) {
+        Alert a = new Alert(Alert.AlertType.INFORMATION);
+        a.setTitle(title);
+        a.setContentText(content);
+        a.showAndWait();
+    }
+
+
 }

@@ -23,8 +23,15 @@ import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import db.DbManager;
 
-import static app.ControllerHelper.makeWarningAlert;
+import static app.ControllerHelper.*;
 import static app.FormatHelper.deformatCurrency;
+
+/**
+ * Main controller for the program, in all its spaghetti glory.
+ * Introduction of add mode, and initial code to do inserts (including validation methods for getting PK), by Dexter.
+ * Colours and side logo by Jetlyn.
+ * All other layout and coding by Eric.
+ */
 
 public class Controller {
 
@@ -229,29 +236,22 @@ public class Controller {
             if(datatype.equals("datetime")) {
                 colInput = cm.makeDatePicker();
             }
-
             // Decimal data: create textbox with decimal formatting and validation
             else if (datatype.equals("decimal")) {
                 colInput = cm.makeTextField(); // add a text field
-
-
-
             // Int data: create textbox
             } else if (datatype.equals("int")) {
                 colInput = cm.makeTextField(); // add a text field
-
             // Text data that could be longer than one line
             } else if (maxLength != null && maxLength > 50) {
                 colInput = cm.makeTextArea(columnLabel);
 
             // Varchar/ misc data
-            // TODO: Not neccessary, but could add varchar length validation here instead of in DbManager
             // TODO: Figure out if there are other data types this should be checking for
             } else {
                 colInput = cm.makeTextField(); // add a text field
             }
             colInput.setId("input" + colName); // give it an id
-
             vboxInputs.getChildren().add(colInput); // add it to other vbox
 
             // Time to add a slew of validators to the internal list of validators for this control.
@@ -269,19 +269,16 @@ public class Controller {
             else if (datatype.equals("decimal") || datatype.equals("double")) {
                 cm.addDoubleDecimalValidation((IValidates) colInput);
             }
-
             // Add foreign key reference validation if needed (regardless of data type)
             // Call DB information schema to see if this column is a foreign key, and if so, to what
             DbManager.ForeignKeyReference fkRef = connection.getForeignKeyReferences(currentTable, colName);
             if (fkRef != null){ // if a fk reference to a pk was found..
                 cm.addFKeyValidation((IValidates) colInput, fkRef);
             }
-
             // Add soft confirmation validation for potential phone number fields
              if(colName.toLowerCase(Locale.ROOT).contains("phone")){
                  cm.addSoftPhoneValidation((IValidates) colInput);
              }
-
             // Add soft confirmation validation for potential email fields
             if(colName.toLowerCase(Locale.ROOT).contains("email")){
                 cm.addSoftEmailValidation((IValidates) colInput);
@@ -289,7 +286,6 @@ public class Controller {
 
             // If a preexisting table class exists, add custom validation if any
             if(predefinedClassFile != null){  // Check for table class
-
                 // Pull out class method that provides a map of additional validation functions (classes implementing ITableEntity are guaranteed to have this)
                 Method getValidators = null;
                 HashMap<String, CustomValidator> additionalValidators = null;
@@ -545,24 +541,8 @@ public class Controller {
             userMode = null;
 
             // Let user know all worked!
-            Alert a = new Alert(Alert.AlertType.INFORMATION);
-            a.setTitle("Add Successful");
-            a.setContentText("The record has been saved in the database.");
-            a.showAndWait();
-            //Get String arraylist of info Records combo box will be populated with
-//            ArrayList<String> updatedInfo = connection.getRecordNames(currentTable);
-//            int pkValue = Integer.parseInt(textInputs.get(pkColumnName));
-//
-//            //Variable for index position of the inserted row
-//            int cbLabelIndexPos = 0;
-//            //Loop through updatedInfo until entry matching stored primary key value is found. Store index position.
-//            for (int i = 0; i < updatedInfo.size(); i++) {
-//                int currentID = Integer.parseInt(
-//                        updatedInfo.get(i).split(":")[0]);
-//                if (currentID == pkValue) {
-//                    cbLabelIndexPos = i;
-//                }
-//            }
+            makeInfoAlert("Add Successful", "The record has been saved in the database.");
+
             //Populate the record combo box
             populateRecordCBOnly();
             //Select the record that was added
@@ -638,10 +618,8 @@ public class Controller {
             userMode = null;
 
             // Let user know all worked!
-            Alert a = new Alert(Alert.AlertType.INFORMATION);
-            a.setTitle("Update Successful");
-            a.setContentText("The record has been saved in the database.");
-            a.showAndWait();
+            makeInfoAlert("Update Successful", "The record has been saved in the database.");
+
             //Get String arraylist of info Records combo box will be populated with
             ArrayList<String> updatedInfo = connection.getRecordNames(currentTable);
             //Variable for index position of the edited row
@@ -665,6 +643,7 @@ public class Controller {
             makeWarningAlert("Bad Update","Something went wrong!", e.getMessage());
         }
     }
+
 
 
 
