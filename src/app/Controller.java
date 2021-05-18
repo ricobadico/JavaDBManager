@@ -29,8 +29,8 @@ import static app.FormatHelper.deformatCurrency;
 /**
  * Main controller for the program, in all its spaghetti glory.
  * Introduction of add mode, and initial code to do inserts (including validation methods for getting PK), by Dexter.
- * Colours and side logo by Jetlyn.
- * All other layout and coding by Eric.
+ * Colours and side logo, and Customer class file, by Jetlyn.
+ * All other layout and coding throughout the application by Eric.
  */
 
 public class Controller {
