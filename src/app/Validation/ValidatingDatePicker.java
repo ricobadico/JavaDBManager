@@ -1,10 +1,9 @@
 package app.Validation;
 
 import db.CustomValidator;
-import javafx.scene.control.*;
+import javafx.scene.control.DatePicker;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 /**
@@ -47,8 +46,12 @@ public class ValidatingDatePicker extends DatePicker implements IValidates{
 
     @Override
     public void setInputAsString(String string) {
-        LocalDate timeData = LocalDateTime.parse(string).toLocalDate();
-        this.setValue(timeData);
+        if(string.isEmpty()) {
+            this.setValue(null);
+        } else {
+            LocalDate timeData = LocalDate.parse(string.split(" ")[0]);
+            this.setValue(timeData);
+        }
     }
 
     @Override
